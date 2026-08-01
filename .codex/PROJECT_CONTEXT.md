@@ -38,10 +38,11 @@
 
 ## Deploy / Run Notes
 
-- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites 版本 1 已于 2026-08-01 以仅所有者可见方式成功部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`。
+- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites 版本 1 已于 2026-08-01 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，截至 2026-08-02 访问模式仍为 `custom`，仅所有者可见。
 - `.openai/hosting.json` 继续保持无 D1/R2 绑定；浏览器本地状态不上传。
-- 实际计算留存指标前必须绑定持久化 `ZODIAC_KV` 并配置稳定的 `RATE_LIMIT_SALT`；当前没有公开指标 API 或看板。
-- 本地 Worker-compatible 构建与 Sites 打包/发布已验证；生产站尚未配置模型、私盐或持久 KV，也未做生产聊天与限额验收。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
+- 实际计算留存指标前必须选择持久存储、实现 `ZODIAC_KV` 平台适配并配置稳定的 `RATE_LIMIT_SALT`；当前没有已绑定的持久资源、公开指标 API 或看板。
+- 本地 Worker-compatible 构建与 Sites 打包/发布已验证；Sites 环境变量 revision=0、entries=[]，生产站尚未配置模型或私盐，也未做生产聊天与限额验收。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
+- 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。当前没有项目级 `LLM_*`/`RATE_LIMIT_SALT` 配置或可安全复用的 localhost 模型上游，`POST /api/chat` 返回 503 `MODEL_NOT_CONFIGURED`，因此只能称“本地可看、玩法可体验”，不能称真实聊天可用。
 - 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
 
 ## Known Pitfalls
@@ -53,6 +54,7 @@
 - 当前 KV 接口只有 `get/put`，cohort 聚合不是原子计数；适合 V0.2 小流量验证，正式放量前需换成原子计数或事务存储。
 - `headers()` 会使 metadata 进入动态渲染；SSR 已验证恶意 forwarded/internal origin 输入会被 Worker 覆写，`https://zodiac.example/` 仍生成该 origin 的绝对 `/og.png`，无 `pages.dev` 回退。
 - 当前本地门禁运行于 Node.js 24.13.0；最低 Node.js 22.13.0 与 CI 的 Node.js 22 目标仍需由真实 GitHub Actions 运行复验。
+- `ZODIAC_KV` 是项目内部 KV 接口，不是可直接假定存在的平台绑定；生产启用前必须有真实存储资源和适配实现证据。
 
 ## Verification Pointers
 
