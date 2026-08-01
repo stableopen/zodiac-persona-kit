@@ -38,6 +38,7 @@
 - 2026-08-01：全量 34/34 单元测试、类型检查、lint、生产构建和 3/3 服务端渲染通过。
 - 2026-08-01 外部审计修复后：全量 40/40 单元测试、类型检查、lint、生产构建和 4/4 服务端渲染通过；CEO 独立复跑本轮相关 19/19、4/4 服务端渲染和类型检查。
 - 2026-08-02 本地优先复核：相关 4 个测试文件 22/22 通过；`/` 与 `/explore` 为 200；浏览器实走直选处女座、双声道选 B、揭示双鱼座、确认与导出入口。`ZodiacApp.tsx` 在 duel 结果使用 `createDuelShareCard`，旧人格结果卡只用于普通结果页回退。
+- 2026-08-02 提交 `aea5a1c` 的完整门禁通过：typecheck、Vitest 9 文件 40/40、lint、vinext production build、SSR 4/4。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 

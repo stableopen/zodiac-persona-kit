@@ -43,6 +43,7 @@
 - 实际计算留存指标前必须选择持久存储、实现 `ZODIAC_KV` 平台适配并配置稳定的 `RATE_LIMIT_SALT`；当前没有已绑定的持久资源、公开指标 API 或看板。
 - 本地 Worker-compatible 构建与 Sites 打包/发布已验证；Sites 环境变量 revision=0、entries=[]，生产站尚未配置模型或私盐，也未做生产聊天与限额验收。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
 - 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。当前没有项目级 `LLM_*`/`RATE_LIMIT_SALT` 配置或可安全复用的 localhost 模型上游，`POST /api/chat` 返回 503 `MODEL_NOT_CONFIGURED`，因此只能称“本地可看、玩法可体验”，不能称真实聊天可用。
+- 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
 - 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
 
 ## Known Pitfalls
