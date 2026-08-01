@@ -27,6 +27,12 @@ test("server-renders the finished AI星座搭子 homepage", async () => {
   const html = await response.text();
   assert.match(html, /AI星座搭子/);
   assert.match(html, /你的AI/);
+  assert.equal(
+    (html.match(/class="hero-title-line"/g) ?? []).length,
+    2,
+    "首页主标题应由两个受控标题行组成",
+  );
+  assert.match(html, /class="hero-title-accent"[^>]*>星座？<\/span>/);
   assert.match(html, /测测我的AI搭子/);
   assert.match(html, /同一道题，让两种AI回答给你听/);
   assert.match(html, /同一道题，两种AI/);

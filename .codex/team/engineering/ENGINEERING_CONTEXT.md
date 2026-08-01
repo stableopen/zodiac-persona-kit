@@ -11,6 +11,8 @@
 - 分享卡：普通结果使用人格卡；双声道使用独立匿名 A/B Canvas 卡，只绘制题目、两条回答、二维码和娱乐声明。
 - 本地状态：`src/lib/local-state.ts` 保存确认人格和最近 9 条当前会话；不上传本地历史。
 - 聊天：`src/server/chat.ts` 调用 OpenAI 兼容接口，只接受 user/assistant，最多发送最近 4 轮，默认最多 300 tokens。
+- 运行时桥接：`worker/index.ts` 在进入应用 handler 前调用 `bridgeRuntimeEnv`，只把 `RuntimeEnv` 白名单和 `ZODIAC_KV` 写入 `globalThis.__ZODIAC_ENV__`；同一 Worker 部署的 env 稳定，并发请求不记录或扩散值。
+- 本地开发配置：`vite.config.ts` 仅在 `command === "serve"` 时传入已有配置；普通字段进入 Wrangler `vars`，`LLM_API_KEY` 与 `RATE_LIMIT_SALT` 只以 `secrets.required` 名称声明并由 Wrangler 从父进程读取，build 不嵌入秘密。
 - 事件：`src/server/events.ts` 使用事件与安全元数据白名单；拒绝正文和额外字段。
 - 留存：`src/server/retention.ts` 使用 `RATE_LIMIT_SALT + x-zodiac-device` 的 SHA-256 匿名关联，不含 IP；设备状态 TTL 10 天，cohort TTL 35 天。
 - 访客限额：`src/server/quota.ts` 对 IP 和设备分别做带私盐、域分隔的 SHA-256 并分别计数，任一达到上限即拒绝；缺私盐或无有效身份时在模型调用前安全失败。
@@ -24,6 +26,7 @@
 - 分享 URL 只允许 `scenario/left/right/pick/ref`，严格校验且不接受额外键。
 - 生产必须配置稳定且保密的 `RATE_LIMIT_SALT`、持久 `ZODIAC_KV` 和模型环境变量；密钥不得进入仓库。
 - 原始 IP 和设备 ID 不进入额度 KV 或响应；留存写入失败仍不得影响已成功聊天。
+- 不创建含模型密钥或私盐的 `.env.local`；当前本地接入只使用服务进程环境，Context 只记录字段名和验收结果。
 
 ## 常用命令
 
@@ -39,6 +42,8 @@
 - 2026-08-01 外部审计修复后：全量 40/40 单元测试、类型检查、lint、生产构建和 4/4 服务端渲染通过；CEO 独立复跑本轮相关 19/19、4/4 服务端渲染和类型检查。
 - 2026-08-02 本地优先复核：相关 4 个测试文件 22/22 通过；`/` 与 `/explore` 为 200；浏览器实走直选处女座、双声道选 B、揭示双鱼座、确认与导出入口。`ZodiacApp.tsx` 在 duel 结果使用 `createDuelShareCard`，旧人格结果卡只用于普通结果页回退。
 - 2026-08-02 提交 `aea5a1c` 的完整门禁通过：typecheck、Vitest 9 文件 40/40、lint、vinext production build、SSR 4/4。
+- 2026-08-02 提交 `3d03825` 完成运行时环境桥接：测试先以缺少桥接函数 2/2 RED，再转为 2/2 GREEN；CEO 重启后 `/api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复、`quota.remaining=4`，回复先共情再给轻量行动建议。
+- 2026-08-02 Hero 密度优化验证：1440×900 标题 2 行、主 CTA 底部约 663px；390×844 标题 3 行、返回用户继续聊天与 Hero 主 CTA 均在首屏；两视口无横向溢出、控制台 error=0。最终 typecheck、Vitest 10 文件 42/42、lint、production build、SSR 4/4 通过。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 
@@ -54,11 +59,11 @@
 - 2026-08-02 实时审计：Sites 访问模式为 `custom`，仅 1 个所有者、0 个组和 0 个外部访客；环境变量 revision=0、entries=[]；本地 `localhost:3000` 返回 200。
 - 当前 HEAD 与 Sites 版本 1 的运行时代码一致，差异仅为后续 `.codex` 上下文文档；生产版本源提交为 `9442e73`。
 - `ZODIAC_KV` 目前只是运行时抽象接口，不是已配置的 Sites 持久资源；需要先选择存储并实现平台绑定适配。
-- 当前项目没有真实 `.env` 模型配置，进程环境中的 `LLM_BASE_URL`、`LLM_API_KEY`、`LLM_MODEL`、`RATE_LIMIT_SALT` 均未设置，也未发现可安全复用的 localhost OpenAI-compatible 服务；`POST /api/chat` 返回 503 `MODEL_NOT_CONFIGURED`。
+- 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由当前 dev 服务进程持有，重启时若未再次注入会安全降级为 503。生产 Sites 仍未配置或验证真实聊天。
 
 ## 下一步
 
-1. 保留现有架构和 V0.1/V0.2 路径；先通过项目外秘密配置接入所有者的 OpenAI-compatible 上游并验证一条真实本地回复，不实现假回复。
+1. 保留现有架构和 V0.1/V0.2 路径；本地重启继续使用项目外进程配置，不创建秘密文件、不实现假回复。
 2. 获得所有者明确授权后切换公开访问并验证未登录请求；启用生产聊天前设置稳定私盐和费用硬限制。
 3. 完成持久存储选型与适配后，再验证可信代理 IP、双限额、留存和 Worker origin；用第二台未登录设备验证互动分享二维码。
 4. 安装并登录 GitHub CLI 后运行远程 Node 22 CI；正式放量前把访客额度和留存 cohort 更新迁移到原子计数、事务存储或单写者聚合。

@@ -1011,7 +1011,12 @@ export function ZodiacApp({
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow"><span>V0.2</span> 先听表达，再看星座身份</p>
-          <h1>你的AI，<br />应该是什么<span>星座？</span></h1>
+          <h1>
+            <span className="hero-title-line">你的AI，</span>
+            <span className="hero-title-line">
+              应该是什么<span className="hero-title-accent">星座？</span>
+            </span>
+          </h1>
           <p className="hero-lead">同一道题，让两种AI回答给你听；选出更对味的那个，再让朋友也选一次。</p>
           <div className="hero-actions">
             <button className="primary-button" onClick={startQuiz}>测测我的AI搭子 <span>→</span></button>

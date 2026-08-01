@@ -24,6 +24,7 @@
 - `app/layout.tsx`：动态 metadata 只读取 Worker 根据实际 Request URL 覆写的内部 origin 头，为 Open Graph/X 生成绝对 `/og.png` URL。
 - `src/server/events.ts`：事件名和元数据精确白名单；`src/server/quota.ts` 按服务端日期桶及安全维度计数。
 - `src/server/retention.ts`：用严格匿名设备哈希关联确认与服务端成功回复，按 UTC 基准日计算 7 日同人格有效复用率；口径见 `docs/V0.2_RETENTION_METRIC.md`。
+- `src/server/runtime.ts` 与 `worker/index.ts`：Worker 入口只把聊天、限额字符串和 `ZODIAC_KV` 白名单桥接到应用运行时；本地 `vite serve` 通过 Wrangler `vars` 传普通配置，通过 `secrets.required` 从父进程加载密钥与私盐，生产构建不注入这些值。
 - `README.md` 是中文主入口并含简短 English summary；人格格式与部署边界分别见 `docs/PERSONA_FORMAT.md`、`docs/DEPLOYMENT.md`。
 - `.github/workflows/ci.yml` 配置为在 Node.js 22 上执行安装、类型、单测、lint、构建和构建产物 SSR；没有发布步骤或密钥，尚未在 GitHub 真实运行。
 
@@ -44,12 +45,15 @@
 - 本地 Worker-compatible 构建与 Sites 打包/发布已验证；Sites 环境变量 revision=0、entries=[]，生产站尚未配置模型或私盐，也未做生产聊天与限额验收。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
 - 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。当前没有项目级 `LLM_*`/`RATE_LIMIT_SALT` 配置或可安全复用的 localhost 模型上游，`POST /api/chat` 返回 503 `MODEL_NOT_CONFIGURED`，因此只能称“本地可看、玩法可体验”，不能称真实聊天可用。
 - 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
+- 2026-08-02 提交 `3d03825` 完成本地 Worker 环境桥接；DeepSeek 云端 `deepseek-chat` 通过项目外进程配置接入，`POST /api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复和有效剩余额度。仓库、日志和团队档案均不保存密钥或私盐值。
+- 同轮首页 Hero 在不改文案、颜色、卡片、动画或流程的前提下收紧信息密度；1440×900 标题固定两行且主 CTA 首屏可见，390×844 标题三行、说明与主 CTA 首屏可见，两视口均无横向溢出、控制台 error 为 0。当前门禁为 typecheck、Vitest 42/42、lint、生产构建和 SSR 4/4。
 - 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
 
 ## Known Pitfalls
 
 - Vitest/esbuild 在受限沙箱可能因父目录读取被拒，需要在获准的项目执行环境中运行。
 - 在线聊天仍依赖既有 `LLM_BASE_URL/LLM_API_KEY/LLM_MODEL`；双声道和深链不依赖模型。
+- 本地 DeepSeek 配置只存在于当前 dev 服务进程；服务重启后必须再次从项目外注入，不得把值写入仓库或 Context。缺配置时接口按既有 503 降级。
 - 生产代理必须清洗并可信设置 `cf-connecting-ip` / `x-forwarded-for`；直接信任客户端自带转发头会削弱 IP 限额。
 - 市场、留存和商业判断仍是假设；事件已具备安全区分，但尚无真实用户数据。
 - 当前 KV 接口只有 `get/put`，cohort 聚合不是原子计数；适合 V0.2 小流量验证，正式放量前需换成原子计数或事务存储。
@@ -65,6 +69,7 @@
 - 本地状态：`tests/local-state.test.ts`
 - 事件白名单：`tests/events.test.ts`
 - 留存口径、隐私与聊天成功接线：`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`
+- Worker 环境白名单与本地开发秘密边界：`tests/runtime.test.ts`
 - 服务端渲染、深链和绝对 OG/X URL：`tests/rendered-html.test.mjs`
 - 开源入口与格式：`README.md`、`docs/PERSONA_FORMAT.md`、`docs/DEPLOYMENT.md`
 - 社交图：`public/og.png`，源/目标 SHA-256 均为 `42FC24286C72628CE98FBFC9E8E0ED873C9A4E0047E19911BC8B42992FD68E07`
