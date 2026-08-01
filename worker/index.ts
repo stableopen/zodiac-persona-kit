@@ -1,8 +1,9 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { bridgeRuntimeEnv, type RuntimeEnv } from "../src/server/runtime";
 
-interface Env {
+interface Env extends RuntimeEnv {
   ASSETS: {
     fetch(request: Request): Promise<Response>;
   };
@@ -51,6 +52,10 @@ const worker = {
       }, allowedWidths);
     }
 
+    // A Worker isolate receives platform bindings through `env`, while the app
+    // router reads a process-compatible global. Copy only the application
+    // whitelist; the deployment environment is stable within an isolate.
+    bridgeRuntimeEnv(env);
     return handler.fetch(withRequestOriginHeaders(request), env, ctx);
   },
 };

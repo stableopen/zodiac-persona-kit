@@ -18,6 +18,26 @@ export interface RuntimeEnv {
   ZODIAC_KV?: KeyValueStore;
 }
 
+const RUNTIME_PLAIN_TEXT_KEYS = [
+  "LLM_BASE_URL",
+  "LLM_MODEL",
+  "PER_VISITOR_DAILY_LIMIT",
+  "GLOBAL_DAILY_LIMIT",
+  "MAX_OUTPUT_TOKENS",
+] as const;
+
+const RUNTIME_SECRET_KEYS = ["LLM_API_KEY", "RATE_LIMIT_SALT"] as const;
+
+const RUNTIME_STRING_KEYS = [
+  ...RUNTIME_PLAIN_TEXT_KEYS,
+  ...RUNTIME_SECRET_KEYS,
+] as const;
+
+export interface LocalDevRuntimeBindings {
+  vars?: Record<string, string>;
+  secrets?: { required: string[] };
+}
+
 export interface CounterStore {
   get(key: string): Promise<number>;
   set(key: string, value: number, ttlSeconds: number): Promise<void>;
@@ -78,6 +98,46 @@ export function parsePositiveInt(
   return Number.isInteger(parsed) && parsed > 0 && parsed <= maximum
     ? parsed
     : fallback;
+}
+
+function isConfiguredString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+export function bridgeRuntimeEnv(env: RuntimeEnv): void {
+  const bridged: RuntimeEnv = {};
+  for (const key of RUNTIME_STRING_KEYS) {
+    const value = env[key];
+    if (isConfiguredString(value)) bridged[key] = value;
+  }
+  if (env.ZODIAC_KV) bridged.ZODIAC_KV = env.ZODIAC_KV;
+
+  (
+    globalThis as typeof globalThis & { __ZODIAC_ENV__?: RuntimeEnv }
+  ).__ZODIAC_ENV__ = bridged;
+}
+
+export function localDevRuntimeBindings(
+  command: string,
+  values: Record<string, string | undefined>,
+): LocalDevRuntimeBindings {
+  if (command !== "serve") return {};
+
+  const vars: Record<string, string> = {};
+  for (const key of RUNTIME_PLAIN_TEXT_KEYS) {
+    const value = values[key];
+    if (isConfiguredString(value)) vars[key] = value;
+  }
+  const requiredSecrets = RUNTIME_SECRET_KEYS.filter((key) =>
+    isConfiguredString(values[key]),
+  );
+
+  return {
+    ...(Object.keys(vars).length > 0 ? { vars } : {}),
+    ...(requiredSecrets.length > 0
+      ? { secrets: { required: [...requiredSecrets] } }
+      : {}),
+  };
 }
 
 export function runtimeEnvFromProcess(): RuntimeEnv {
