@@ -38,11 +38,11 @@
 
 ## Deploy / Run Notes
 
-- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；截至首次开源发布准备，没有已验证的公开生产环境。
+- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites 版本 1 已于 2026-08-01 以仅所有者可见方式成功部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`。
 - `.openai/hosting.json` 继续保持无 D1/R2 绑定；浏览器本地状态不上传。
 - 实际计算留存指标前必须绑定持久化 `ZODIAC_KV` 并配置稳定的 `RATE_LIMIT_SALT`；当前没有公开指标 API 或看板。
-- 本地 Worker-compatible 构建已验证；Sites/Cloudflare 和 EdgeOne 都尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
-- 最小开源发布准备完成了本地文件与 CI 配置；真实远程 CI、建库和部署均需从当前外部记录复核，不能从本地文件推断。
+- 本地 Worker-compatible 构建与 Sites 打包/发布已验证；生产站尚未配置模型、私盐或持久 KV，也未做生产聊天与限额验收。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
+- 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
 
 ## Known Pitfalls
 
