@@ -47,7 +47,7 @@
 - 2026-08-02 提交 `3d03825` 完成运行时环境桥接：测试先以缺少桥接函数 2/2 RED，再转为 2/2 GREEN；CEO 重启后 `/api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复、`quota.remaining=4`，回复先共情再给轻量行动建议。
 - 2026-08-02 Hero 密度优化验证：1440×900 标题 2 行、主 CTA 底部约 663px；390×844 标题 3 行、返回用户继续聊天与 Hero 主 CTA 均在首屏；两视口无横向溢出、控制台 error=0。最终 typecheck、Vitest 10 文件 42/42、lint、production build、SSR 4/4 通过。
 - 2026-08-02 提交 `3038320` 的 Public Beta 持久化基线曾通过 typecheck、Vitest 55/55、lint、production build、SSR 4/4，并以真实 SQLite 覆盖 migration、upsert、到期清理和索引。
-- 2026-08-02 空 D1 运行缺口修复：新增测试先以 `no such table: zodiac_kv` 失败，再验证首次 get/put 前仅初始化一次表与索引；存储相关 3 文件 9/9、typecheck、lint、production build、SSR 4/4 通过。因执行环境账户额度限制，本次未重跑全量 Vitest，也未完成 fresh Miniflare dev/API 实跑；不得把 9/9 定向结果表述为本提交全量 56/56。
+- 2026-08-02 空 D1 运行缺口修复：新增测试先以 `no such table: zodiac_kv` 失败，再验证首次 get/put 前仅初始化一次表与索引；修复提交为 `5070ddd`。当前 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、production build、SSR 4/4 和 `git diff --check`。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 
@@ -57,18 +57,16 @@
 - D1 每个 put 先按 `expires_at` 索引清理到期行，再 upsert；过期 get 做条件删除。停流期间物理删除要等后续请求，且并行计数写会重复清理，仅适合小流量 Beta。
 - 访客额度同样是读后写；高并发可能竞态，且共享公网 IP 可能让同一网络用户共享限额。
 - 来源 IP 可信度依赖生产代理正确覆盖连接来源头；OG origin 依赖页面请求经过当前 Worker。
-- 尚未用真实线上模型完成生产聊天验证，也未全面验证真实手机 Web Share。
-- 本地源码已提交；Sites 源提交 `9442e73` 已打包为版本 1，并于 2026-08-01 成功部署为仅所有者可见的生产站。
-- Sites version 2 已保存且来源提交为 `3038320`；环境变量 revision=1 已出现模型、私盐、限额和严格存储键，但秘密值未读取、有效性未验证。站点仍为 custom owner-only，version 2 当前是否已部署以及在线聊天、私盐限额和持久留存均尚未完成生产验收。
-- GitHub CLI 尚未安装，公开 GitHub 仓库与远程 Node 22 CI 尚未创建或运行。
-- 2026-08-02 实时审计：Sites 访问模式为 `custom`，仅 1 个所有者、0 个组和 0 个外部访客；环境变量 revision=1 已配置所需键，秘密值未读取；Sites version 2 已保存但当前生产部署版本未由可见状态确认。
-- 当前空 D1 初始化修复晚于 Sites version 2 的源提交 `3038320`，尚未保存或部署到 Sites。
-- 仓库已实现 Sites D1 适配和迁移，但当前已部署的 Sites 版本尚未应用本候选代码/迁移，不能声称生产持久化已可用。
-- 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由当前 dev 服务进程持有，重启时若未再次注入会安全降级为 503。生产 Sites 仍未配置或验证真实聊天。
+- 尚未全面验证真实手机 Web Share；公开匿名与第二会话/设备传播链路仍是 Public Beta P1。
+- Sites version 3 已于 2026-08-02 部署，来源提交为 `5070ddd`；站点 active，访问模式为 `custom`，仅 1 个所有者、0 个外部访客。
+- 生产 `/`、`/explore`、真实 DeepSeek 非空聊天、事件写入已通过；额度从 version 2 的 3 延续到 version 3 的 2，证明 D1 持久状态跨部署延续。
+- 环境变量 revision=1 已包含模型、私盐、限额和严格存储键；只读取键名与 secret 标志，没有读取、回显或保存值。
+- GitHub remote、公开仓库、远程 Node.js 22 CI、全新克隆复现和正式标签均未完成。
+- 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由 dev 服务进程持有，重启时若未再次注入会安全降级为 503。仅 `.env.example` 被跟踪，`.env*`、`.wrangler/`、本地日志和临时输出均保持忽略。
 
 ## 下一步
 
 1. 保留现有架构和 V0.1/V0.2 路径；本地重启继续使用项目外进程配置，不创建秘密文件、不实现假回复。
-2. 获得所有者明确授权后切换公开访问并验证未登录请求；启用生产聊天前设置稳定私盐和费用硬限制。
-3. 部署本候选并真实应用 D1 migration 后，验证可信代理 IP、双限额、跨实例事件/留存和 Worker origin；用第二台未登录设备验证互动分享二维码。
-4. 安装并登录 GitHub CLI 后运行远程 Node 22 CI；正式放量前把访客额度和留存 cohort 更新迁移到原子计数、事务存储或单写者聚合。
+2. 建立 GitHub remote 后运行 Node.js 22 远程 CI，并从全新克隆按 README 复现完整门禁。
+3. 获得所有者明确授权后切换公开访问；用未登录浏览器走完核心路径，用第二会话/设备验证真实分享链接并读回一次生产事件聚合。
+4. 正式放量前把访客额度和留存 cohort 更新迁移到原子计数、事务存储或单写者聚合；真实数据出现前不宣称市场、传播、留存或商业成立。

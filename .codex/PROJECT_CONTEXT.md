@@ -41,16 +41,16 @@
 
 ## Deploy / Run Notes
 
-- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites 版本 1 已于 2026-08-01 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，截至 2026-08-02 访问模式仍为 `custom`，仅所有者可见。
+- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites version 3 已于 2026-08-02 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，来源提交为 `5070ddd`。站点状态为 active，访问模式仍为 `custom`，仅 1 个所有者可见、0 个外部访客。
 - `.openai/hosting.json` 已声明逻辑 D1 绑定 `DB`，仓库含 schema、生成 migration 和 Worker 适配；浏览器本地状态仍不上传。
-- 实际计算留存指标前仍必须由平台真实创建/绑定资源、应用 migration、配置稳定 `RATE_LIMIT_SALT` 与 `REQUIRE_PERSISTENT_STORE=true`；当前没有已验证的生产 D1、公开指标 API 或看板。
-- 本地 Worker-compatible 构建与 Sites 打包已验证；Sites version 2 已保存且来源提交为 `3038320`，访问仍为 custom owner-only。生产环境键已配置至 revision=1，但键存在不证明值有效，version 2 是否为当前线上版本、D1 migration、生产聊天、限额和事件读回均尚未验证。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
-- 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。当前没有项目级 `LLM_*`/`RATE_LIMIT_SALT` 配置或可安全复用的 localhost 模型上游，`POST /api/chat` 返回 503 `MODEL_NOT_CONFIGURED`，因此只能称“本地可看、玩法可体验”，不能称真实聊天可用。
+- Sites version 3 的生产 `/`、`/explore`、真实 DeepSeek 聊天和事件写入已通过；同一访客额度从 version 2 的 3 延续到 version 3 的 2，证明共享 D1 在跨部署场景保持状态。该证据不等于已有公开指标 API、看板或真实留存数据。
+- 生产环境变量 revision=1 已包含模型、私盐、限额与严格持久存储所需键；核对只读取键名和 secret 标志，没有读取或记录值。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
+- 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。随后通过项目外进程配置接入真实 DeepSeek，补齐本地非空聊天回复证据；重启后仍需重新从项目外注入配置。
 - 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
 - 2026-08-02 提交 `3d03825` 完成本地 Worker 环境桥接；DeepSeek 云端 `deepseek-chat` 通过项目外进程配置接入，`POST /api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复和有效剩余额度。仓库、日志和团队档案均不保存密钥或私盐值。
 - 同轮首页 Hero 在不改文案、颜色、卡片、动画或流程的前提下收紧信息密度；1440×900 标题固定两行且主 CTA 首屏可见，390×844 标题三行、说明与主 CTA 首屏可见，两视口均无横向溢出、控制台 error 为 0。当前门禁为 typecheck、Vitest 42/42、lint、生产构建和 SSR 4/4。
 - 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
-- 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；修复以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。受影响存储测试 9/9、typecheck、lint、生产构建与 SSR 4/4 通过；本次全量 Vitest 与 dev 空库 API 复跑因执行环境账户额度限制未完成，不能把该轮定向证据扩大为完整运行验收。
+- 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；提交 `5070ddd` 以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。当前 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、生产构建与 SSR 4/4；`git diff --check` 亦通过。
 
 ## Known Pitfalls
 
@@ -63,7 +63,7 @@
 - D1 每次写入都会按索引清理过期行；停流时物理清理要等后续请求触发，且并行额度写入会重复清理。该方案只适用于小流量 Public Beta，不作高并发或定时删除承诺。
 - `headers()` 会使 metadata 进入动态渲染；SSR 已验证恶意 forwarded/internal origin 输入会被 Worker 覆写，`https://zodiac.example/` 仍生成该 origin 的绝对 `/og.png`，无 `pages.dev` 回退。
 - 当前本地门禁运行于 Node.js 24.13.0；最低 Node.js 22.13.0 与 CI 的 Node.js 22 目标仍需由真实 GitHub Actions 运行复验。
-- `ZODIAC_KV` 是项目内部 KV 接口；EdgeOne 可直接提供兼容绑定，Sites 则由 Worker 把 `DB` 适配为该接口。源码/迁移存在不代表生产资源已经创建或迁移成功。
+- `ZODIAC_KV` 是项目内部 KV 接口；EdgeOne 可直接提供兼容绑定，Sites 则由 Worker 把 `DB` 适配为该接口。Sites version 3 已用生产额度跨部署延续证明当前 D1 路径可用；其他平台仍须各自完成真实资源和迁移验收。
 
 ## Verification Pointers
 
