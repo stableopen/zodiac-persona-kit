@@ -6,7 +6,7 @@
 
 AI星座搭子是一个中文 AI 沟通人格体验项目。V0.2 用“同题双声道”让用户直接比较两种表达方式，完成选择、揭示差异、确认人格，并继续聊天或邀请朋友参与同一场选择。
 
-当前状态：V0.2 的本地类型检查、自动化测试、生产构建和服务端渲染门禁已通过。远程 CI 与生产部署状态应以当前仓库的 Actions 和部署记录为准；截至首次开源发布准备，尚无已验证的公开生产环境。在线聊天需要使用者自行配置兼容 OpenAI Chat Completions 的模型服务。
+当前状态：V0.2 已加入 Public Beta 候选所需的共享持久存储适配、Sites D1 schema/migration 和生产严格门禁；V0.1/V0.2 的既有体验路径保持不变。远程 CI 与生产部署状态应以当前仓库的 Actions 和部署记录为准；截至本候选版本，尚无已验证的公开生产环境。在线聊天需要使用者自行配置兼容 OpenAI Chat Completions 的模型服务。
 
 ## 核心体验
 
@@ -54,9 +54,12 @@ Copy-Item .env.example .env.local
 | `PER_VISITOR_DAILY_LIMIT` | 单匿名访客每日聊天上限，默认 5 | 可选 |
 | `GLOBAL_DAILY_LIMIT` | 全站每日聊天上限，默认 300 | 可选 |
 | `MAX_OUTPUT_TOKENS` | 单次最大输出 token，默认 300 | 可选 |
-| `ZODIAC_KV` | 平台提供的持久 KV 绑定，不是公开前端变量 | 真实留存统计必需 |
+| `ZODIAC_KV` | EdgeOne 等平台提供的持久 KV 绑定，不是公开前端变量 | EdgeOne 生产必需 |
+| `REQUIRE_PERSISTENT_STORE` | 设为 `true` 后，缺少共享 KV/D1 时安全返回 503 | Public Beta 生产必需 |
 
 不要提交 `.env.local` 或任何真实密钥。模型未配置时，在线聊天会明确降级，其余核心体验仍可使用。
+
+Sites 部署通过 [`.openai/hosting.json`](.openai/hosting.json) 的逻辑 `DB` 绑定接入 D1；Worker 会优先沿用既有 `ZODIAC_KV`，仅在其缺失时把 `DB` 包装为相同业务接口。生产必须设置 `REQUIRE_PERSISTENT_STORE=true`，本地未设置时仍保留进程内限额降级，便于无模型路径开发。
 
 ## 隐私与科学边界
 
@@ -65,6 +68,7 @@ Copy-Item .env.example .env.local
 - 双声道邀请卡只显示题目与匿名 A/B 回答，不显示人格名称、分享者选择、问卷答案或聊天正文；互动 URL 和匿名事件同样不包含问卷答案、用户问题或聊天正文。
 - 聊天限额分别对加盐哈希后的平台 IP 和匿名设备标识计数；任一身份达到上限都会拒绝请求，KV 与响应不保存或返回原始标识。
 - 7 日复用统计只保存加盐匿名哈希、人格 ID、UTC 日期和计数；不在应用 KV 中保存原始设备 ID、IP 或聊天正文。详细口径见 [V0.2 留存指标说明](docs/V0.2_RETENTION_METRIC.md)。
+- 匿名漏斗事件只保存白名单事件和有限维度的每日聚合，逻辑 TTL 为 35 天；D1 适配器会在后续读写时清理到期行，仓库不提供公开指标 API 或管理后台。
 - 星座在这里是可理解、好玩的沟通人格载体，不是经过科学验证的人格测量、占星预测或心理诊断。
 - 本项目不能替代医疗、心理、法律或其他专业建议；模型回答也可能出错。
 
@@ -80,12 +84,16 @@ node --test tests/rendered-html.test.mjs
 
 也可以用 `npm run test:render` 连续执行生产构建和构建产物 SSR 验证。GitHub CI 已配置为在 Node.js 22 上执行相同门禁，不包含部署步骤或密钥；其当前状态应以仓库 Actions 记录为准。
 
+修改 D1 schema 后运行 `npm run db:generate`，检查并提交 `drizzle/` 下生成的 SQL 和快照；不要只改 schema 而遗漏迁移。
+
 ## 项目结构
 
 ```text
 app/                 页面、交互与 API 路由
 src/lib/             人格校验、推荐、双声道、Prompt 和本地状态
 src/server/          聊天、限额、匿名事件与留存统计
+db/                  D1 的 Drizzle schema
+drizzle/             生成并随 Sites 构建打包的 SQL migration
 personas/            12 套人格 JSON
 edge-functions/api/  EdgeOne API 适配器（尚未真实部署验证）
 worker/              Cloudflare Worker-compatible 入口

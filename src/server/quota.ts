@@ -9,6 +9,7 @@ type QuotaIdentityKind = "ip" | "device";
 
 const MAX_IP_IDENTITY_LENGTH = 128;
 const MAX_DEVICE_IDENTITY_LENGTH = 256;
+const ANONYMOUS_EVENT_TTL_SECONDS = 35 * 24 * 60 * 60;
 
 export class QuotaConfigurationError extends Error {
   constructor() {
@@ -169,5 +170,5 @@ export async function incrementAnonymousEvent(
     dimensions.sourceId ?? "-",
   ].join(":");
   const current = await store.get(key);
-  await store.set(key, current + 1, secondsUntilReset(now));
+  await store.set(key, current + 1, ANONYMOUS_EVENT_TTL_SECONDS);
 }

@@ -348,7 +348,7 @@ describe("聊天API", () => {
     expect(serializedStore).not.toContain("这是不能保存的聊天正文");
   });
 
-  it("私盐存在但没有持久 KV 时聊天仍可使用内存限额并跳过留存", async () => {
+  it("本地默认下私盐存在但没有持久 KV 时仍可使用内存限额并跳过留存", async () => {
     const runtimeEnv = env({ ZODIAC_KV: undefined });
     const response = await handleChatRequest(
       request(
@@ -366,6 +366,47 @@ describe("聊天API", () => {
 
     expect(response.status).toBe(200);
     expect(runtimeEnv.ZODIAC_KV).toBeUndefined();
+  });
+
+  it("Public Beta 严格模式缺少共享存储时在模型调用前安全失败", async () => {
+    const fetcher = vi.fn(okFetch);
+    const response = await handleChatRequest(
+      request({
+        personaId: "aries",
+        messages: [{ role: "user", content: "继续" }],
+      }),
+      env({
+        ZODIAC_KV: undefined,
+        REQUIRE_PERSISTENT_STORE: "true",
+      }),
+      { fetch: fetcher },
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.text()).toContain("QUOTA_NOT_CONFIGURED");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("共享额度存储故障返回 503 且不误报为模型故障", async () => {
+    const fetcher = vi.fn(okFetch);
+    const failingKv: KeyValueStore = {
+      async get() {
+        throw new Error("D1 unavailable");
+      },
+      async put() {},
+    };
+    const response = await handleChatRequest(
+      request({
+        personaId: "aries",
+        messages: [{ role: "user", content: "继续" }],
+      }),
+      env({ ZODIAC_KV: failingKv }),
+      { fetch: fetcher },
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.text()).toContain("QUOTA_UNAVAILABLE");
+    expect(fetcher).not.toHaveBeenCalled();
   });
 
   it("确认遥测晚到时由聊天请求中的同人格确认声明补偿且不重复计数", async () => {

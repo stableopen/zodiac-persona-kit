@@ -4,13 +4,19 @@ import type { KeyValueStore, RuntimeEnv } from "../src/server/runtime";
 
 class FakeKv implements KeyValueStore {
   readonly values = new Map<string, string>();
+  readonly ttls = new Map<string, number | undefined>();
 
   async get(key: string) {
     return this.values.get(key) ?? null;
   }
 
-  async put(key: string, value: string) {
+  async put(
+    key: string,
+    value: string,
+    options?: { expirationTtl?: number },
+  ) {
     this.values.set(key, value);
+    this.ttls.set(key, options?.expirationTtl);
   }
 }
 
@@ -44,6 +50,7 @@ describe("匿名事件安全白名单", () => {
     expect([...kv.values.keys()]).toEqual([
       "event:2026-08-01:share_generated:virgo:busy-day:share_12345678",
     ]);
+    expect([...kv.ttls.values()]).toEqual([35 * 24 * 60 * 60]);
   });
 
   it("继续接受V0.1事件但不虚构正文维度", async () => {
@@ -95,5 +102,31 @@ describe("匿名事件安全白名单", () => {
     );
     expect(noDevice.status).toBe(400);
     expect(await noDevice.text()).toContain("MISSING_DEVICE_ID");
+  });
+
+  it("Public Beta 严格模式缺少共享存储时返回 503", async () => {
+    const response = await handleEventRequest(
+      eventRequest({ event: "quiz_completed" }),
+      { REQUIRE_PERSISTENT_STORE: "true" },
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.text()).toContain("PERSISTENT_STORE_NOT_CONFIGURED");
+  });
+
+  it("共享存储故障返回可重试的 503 而不是请求格式错误", async () => {
+    const failingKv: KeyValueStore = {
+      async get() {
+        throw new Error("D1 unavailable");
+      },
+      async put() {},
+    };
+    const response = await handleEventRequest(
+      eventRequest({ event: "quiz_completed" }),
+      { ZODIAC_KV: failingKv },
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.text()).toContain("EVENT_UNAVAILABLE");
   });
 });

@@ -9,6 +9,7 @@ import {
 import { recordSuccessfulChatReply } from "./retention";
 import {
   parsePositiveInt,
+  PersistentStoreConfigurationError,
   type RuntimeEnv,
 } from "./runtime";
 
@@ -173,7 +174,10 @@ export async function handleChatRequest(
         requestId,
       );
     }
-    if (error instanceof QuotaConfigurationError) {
+    if (
+      error instanceof QuotaConfigurationError ||
+      error instanceof PersistentStoreConfigurationError
+    ) {
       return jsonResponse(
         {
           error: error.message,
@@ -196,7 +200,11 @@ export async function handleChatRequest(
       );
     }
     return jsonResponse(
-      upstreamErrorBody("MODEL_UNAVAILABLE", requestId),
+      {
+        error: "体验额度服务暂不可用，请稍后重试。",
+        code: "QUOTA_UNAVAILABLE",
+        requestId,
+      },
       503,
       requestId,
     );

@@ -1,0 +1,1 @@
+CREATE INDEX `zodiac_kv_expires_at_idx` ON `zodiac_kv` (`expires_at`);

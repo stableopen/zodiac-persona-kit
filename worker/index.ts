@@ -2,8 +2,11 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { bridgeRuntimeEnv, type RuntimeEnv } from "../src/server/runtime";
+import type { D1Database } from "../src/server/d1-kv";
+import { resolveWorkerRuntimeEnv } from "./runtime-env";
 
 interface Env extends RuntimeEnv {
+  DB?: D1Database;
   ASSETS: {
     fetch(request: Request): Promise<Response>;
   };
@@ -55,7 +58,7 @@ const worker = {
     // A Worker isolate receives platform bindings through `env`, while the app
     // router reads a process-compatible global. Copy only the application
     // whitelist; the deployment environment is stable within an isolate.
-    bridgeRuntimeEnv(env);
+    bridgeRuntimeEnv(resolveWorkerRuntimeEnv(env));
     return handler.fetch(withRequestOriginHeaders(request), env, ctx);
   },
 };

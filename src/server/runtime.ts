@@ -15,6 +15,7 @@ export interface RuntimeEnv {
   PER_VISITOR_DAILY_LIMIT?: string;
   GLOBAL_DAILY_LIMIT?: string;
   MAX_OUTPUT_TOKENS?: string;
+  REQUIRE_PERSISTENT_STORE?: string;
   ZODIAC_KV?: KeyValueStore;
 }
 
@@ -24,6 +25,7 @@ const RUNTIME_PLAIN_TEXT_KEYS = [
   "PER_VISITOR_DAILY_LIMIT",
   "GLOBAL_DAILY_LIMIT",
   "MAX_OUTPUT_TOKENS",
+  "REQUIRE_PERSISTENT_STORE",
 ] as const;
 
 const RUNTIME_SECRET_KEYS = ["LLM_API_KEY", "RATE_LIMIT_SALT"] as const;
@@ -41,6 +43,13 @@ export interface LocalDevRuntimeBindings {
 export interface CounterStore {
   get(key: string): Promise<number>;
   set(key: string, value: number, ttlSeconds: number): Promise<void>;
+}
+
+export class PersistentStoreConfigurationError extends Error {
+  constructor() {
+    super("Public Beta 持久存储尚未配置");
+    this.name = "PersistentStoreConfigurationError";
+  }
 }
 
 const memoryCounters = new Map<
@@ -84,9 +93,15 @@ export function getCounterStore(
   env: RuntimeEnv,
   now: () => number = Date.now,
 ): CounterStore {
-  return env.ZODIAC_KV
-    ? createKvCounterStore(env.ZODIAC_KV)
-    : createMemoryCounterStore(now);
+  if (env.ZODIAC_KV) return createKvCounterStore(env.ZODIAC_KV);
+  if (isPersistentStoreRequired(env)) {
+    throw new PersistentStoreConfigurationError();
+  }
+  return createMemoryCounterStore(now);
+}
+
+export function isPersistentStoreRequired(env: RuntimeEnv): boolean {
+  return env.REQUIRE_PERSISTENT_STORE?.trim().toLowerCase() === "true";
 }
 
 export function parsePositiveInt(
@@ -169,6 +184,10 @@ export function runtimeEnvFromProcess(): RuntimeEnv {
     MAX_OUTPUT_TOKENS:
       globalValues?.MAX_OUTPUT_TOKENS ??
       processValues.MAX_OUTPUT_TOKENS ??
+      undefined,
+    REQUIRE_PERSISTENT_STORE:
+      globalValues?.REQUIRE_PERSISTENT_STORE ??
+      processValues.REQUIRE_PERSISTENT_STORE ??
       undefined,
     ZODIAC_KV: globalValues?.ZODIAC_KV,
   };

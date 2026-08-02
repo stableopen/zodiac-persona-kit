@@ -11,7 +11,8 @@
 - 分享卡：普通结果使用人格卡；双声道使用独立匿名 A/B Canvas 卡，只绘制题目、两条回答、二维码和娱乐声明。
 - 本地状态：`src/lib/local-state.ts` 保存确认人格和最近 9 条当前会话；不上传本地历史。
 - 聊天：`src/server/chat.ts` 调用 OpenAI 兼容接口，只接受 user/assistant，最多发送最近 4 轮，默认最多 300 tokens。
-- 运行时桥接：`worker/index.ts` 在进入应用 handler 前调用 `bridgeRuntimeEnv`，只把 `RuntimeEnv` 白名单和 `ZODIAC_KV` 写入 `globalThis.__ZODIAC_ENV__`；同一 Worker 部署的 env 稳定，并发请求不记录或扩散值。
+- 运行时桥接：`worker/index.ts` 优先沿用 `ZODIAC_KV`，否则由 `worker/runtime-env.ts` 把 Sites `DB` 包装为 `KeyValueStore`；`bridgeRuntimeEnv` 只把字符串白名单和最终 KV 写入应用全局，不扩散 DB/ASSETS/IMAGES 等平台对象。
+- Sites 持久化：`db/schema.ts` 定义 `zodiac_kv(key,value,expires_at,updated_at)` 与 `expires_at` 索引；`drizzle/0000_square_vanisher.sql`、`0001_pink_captain_midlands.sql` 由 Drizzle Kit 生成并随构建打包。业务模块不直接依赖 D1。
 - 本地开发配置：`vite.config.ts` 仅在 `command === "serve"` 时传入已有配置；普通字段进入 Wrangler `vars`，`LLM_API_KEY` 与 `RATE_LIMIT_SALT` 只以 `secrets.required` 名称声明并由 Wrangler 从父进程读取，build 不嵌入秘密。
 - 事件：`src/server/events.ts` 使用事件与安全元数据白名单；拒绝正文和额外字段。
 - 留存：`src/server/retention.ts` 使用 `RATE_LIMIT_SALT + x-zodiac-device` 的 SHA-256 匿名关联，不含 IP；设备状态 TTL 10 天，cohort TTL 35 天。
@@ -25,6 +26,7 @@
 - 留存配置或写入失败不得把正常聊天变成失败。
 - 分享 URL 只允许 `scenario/left/right/pick/ref`，严格校验且不接受额外键。
 - 生产必须配置稳定且保密的 `RATE_LIMIT_SALT`、持久 `ZODIAC_KV` 和模型环境变量；密钥不得进入仓库。
+- Public Beta 生产必须设置 `REQUIRE_PERSISTENT_STORE=true`；缺共享 KV/D1 时限额和事件返回 503，不允许静默回退内存。
 - 原始 IP 和设备 ID 不进入额度 KV 或响应；留存写入失败仍不得影响已成功聊天。
 - 不创建含模型密钥或私盐的 `.env.local`；当前本地接入只使用服务进程环境，Context 只记录字段名和验收结果。
 
@@ -50,6 +52,7 @@
 ## 已知限制
 
 - KV 接口只有 get/put，cohort 聚合为读后写；高并发可能丢失增量。
+- D1 每个 put 先按 `expires_at` 索引清理到期行，再 upsert；过期 get 做条件删除。停流期间物理删除要等后续请求，且并行计数写会重复清理，仅适合小流量 Beta。
 - 访客额度同样是读后写；高并发可能竞态，且共享公网 IP 可能让同一网络用户共享限额。
 - 来源 IP 可信度依赖生产代理正确覆盖连接来源头；OG origin 依赖页面请求经过当前 Worker。
 - 尚未用真实线上模型完成生产聊天验证，也未全面验证真实手机 Web Share。
@@ -58,12 +61,12 @@
 - GitHub CLI 尚未安装，公开 GitHub 仓库与远程 Node 22 CI 尚未创建或运行。
 - 2026-08-02 实时审计：Sites 访问模式为 `custom`，仅 1 个所有者、0 个组和 0 个外部访客；环境变量 revision=0、entries=[]；本地 `localhost:3000` 返回 200。
 - 当前 HEAD 与 Sites 版本 1 的运行时代码一致，差异仅为后续 `.codex` 上下文文档；生产版本源提交为 `9442e73`。
-- `ZODIAC_KV` 目前只是运行时抽象接口，不是已配置的 Sites 持久资源；需要先选择存储并实现平台绑定适配。
+- 仓库已实现 Sites D1 适配和迁移，但当前已部署的 Sites 版本尚未应用本候选代码/迁移，不能声称生产持久化已可用。
 - 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由当前 dev 服务进程持有，重启时若未再次注入会安全降级为 503。生产 Sites 仍未配置或验证真实聊天。
 
 ## 下一步
 
 1. 保留现有架构和 V0.1/V0.2 路径；本地重启继续使用项目外进程配置，不创建秘密文件、不实现假回复。
 2. 获得所有者明确授权后切换公开访问并验证未登录请求；启用生产聊天前设置稳定私盐和费用硬限制。
-3. 完成持久存储选型与适配后，再验证可信代理 IP、双限额、留存和 Worker origin；用第二台未登录设备验证互动分享二维码。
+3. 部署本候选并真实应用 D1 migration 后，验证可信代理 IP、双限额、跨实例事件/留存和 Worker origin；用第二台未登录设备验证互动分享二维码。
 4. 安装并登录 GitHub CLI 后运行远程 Node 22 CI；正式放量前把访客额度和留存 cohort 更新迁移到原子计数、事务存储或单写者聚合。

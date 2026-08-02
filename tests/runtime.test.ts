@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   bridgeRuntimeEnv,
+  getCounterStore,
   localDevRuntimeBindings,
+  PersistentStoreConfigurationError,
   runtimeEnvFromProcess,
   type KeyValueStore,
   type RuntimeEnv,
@@ -15,6 +17,7 @@ const STRING_KEYS = [
   "PER_VISITOR_DAILY_LIMIT",
   "GLOBAL_DAILY_LIMIT",
   "MAX_OUTPUT_TOKENS",
+  "REQUIRE_PERSISTENT_STORE",
 ] as const;
 
 const originalProcessValues = Object.fromEntries(
@@ -59,6 +62,7 @@ describe("运行时环境桥接", () => {
       PER_VISITOR_DAILY_LIMIT: "5",
       GLOBAL_DAILY_LIMIT: "50",
       MAX_OUTPUT_TOKENS: "300",
+      REQUIRE_PERSISTENT_STORE: "true",
       ZODIAC_KV: kv,
       ASSETS: { fetch: async () => new Response("asset") },
       IMAGES: { input: () => ({}) },
@@ -75,6 +79,7 @@ describe("运行时环境桥接", () => {
       PER_VISITOR_DAILY_LIMIT: "5",
       GLOBAL_DAILY_LIMIT: "50",
       MAX_OUTPUT_TOKENS: "300",
+      REQUIRE_PERSISTENT_STORE: "true",
       ZODIAC_KV: kv,
     });
     expect(runtimeGlobal().__ZODIAC_ENV__).not.toHaveProperty("ASSETS");
@@ -89,6 +94,7 @@ describe("运行时环境桥接", () => {
       LLM_MODEL: "deepseek-chat",
       RATE_LIMIT_SALT: "fake-rate-limit-salt",
       MAX_OUTPUT_TOKENS: "300",
+      REQUIRE_PERSISTENT_STORE: "true",
       UNRELATED: "must-not-cross",
     };
 
@@ -99,10 +105,21 @@ describe("运行时环境桥接", () => {
         LLM_BASE_URL: "https://api.example.test/v1",
         LLM_MODEL: "deepseek-chat",
         MAX_OUTPUT_TOKENS: "300",
+        REQUIRE_PERSISTENT_STORE: "true",
       },
       secrets: { required: ["LLM_API_KEY", "RATE_LIMIT_SALT"] },
     });
     expect(JSON.stringify(bindings)).not.toContain("fake-api-key");
     expect(JSON.stringify(bindings)).not.toContain("fake-rate-limit-salt");
+  });
+
+  it("仅严格模式禁止无共享 KV 的进程内计数", async () => {
+    const localStore = getCounterStore({}, () => 1_000);
+    await localStore.set("local:key", 1, 60);
+    await expect(localStore.get("local:key")).resolves.toBe(1);
+
+    expect(() =>
+      getCounterStore({ REQUIRE_PERSISTENT_STORE: "true" }),
+    ).toThrow(PersistentStoreConfigurationError);
   });
 });

@@ -1,5 +1,8 @@
 import { incrementAnonymousEvent } from "./quota";
-import type { RuntimeEnv } from "./runtime";
+import {
+  PersistentStoreConfigurationError,
+  type RuntimeEnv,
+} from "./runtime";
 import { getPersona } from "../lib/personas";
 import { isDuelScenarioId, isSafeShareSourceId } from "../lib/duel";
 import {
@@ -129,16 +132,32 @@ export async function handleEventRequest(
         );
       }
     }
-    await incrementAnonymousEvent(
-      body.event,
-      env,
-      now,
-      {
-        personaId: body.personaId,
-        scenarioId: body.scenarioId,
-        sourceId: body.sourceId,
-      },
-    );
+    try {
+      await incrementAnonymousEvent(
+        body.event,
+        env,
+        now,
+        {
+          personaId: body.personaId,
+          scenarioId: body.scenarioId,
+          sourceId: body.sourceId,
+        },
+      );
+    } catch (error) {
+      if (error instanceof PersistentStoreConfigurationError) {
+        return Response.json(
+          {
+            error: error.message,
+            code: "PERSISTENT_STORE_NOT_CONFIGURED",
+          },
+          { status: 503 },
+        );
+      }
+      return Response.json(
+        { error: "事件记录暂不可用", code: "EVENT_UNAVAILABLE" },
+        { status: 503 },
+      );
+    }
     return new Response(null, { status: 204 });
   } catch {
     return Response.json(
