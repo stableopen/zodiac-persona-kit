@@ -24,7 +24,7 @@
 - `app/layout.tsx`：动态 metadata 只读取 Worker 根据实际 Request URL 覆写的内部 origin 头，为 Open Graph/X 生成绝对 `/og.png` URL。
 - `src/server/events.ts`：事件名和元数据精确白名单；`src/server/quota.ts` 按服务端日期桶及安全维度计数。
 - `src/server/retention.ts`：用严格匿名设备哈希关联确认与服务端成功回复，按 UTC 基准日计算 7 日同人格有效复用率；口径见 `docs/V0.2_RETENTION_METRIC.md`。
-- `src/server/d1-kv.ts`、`worker/runtime-env.ts` 与 `worker/index.ts`：Worker 优先沿用 `ZODIAC_KV`，否则把 Sites `DB` 包装为相同业务接口；应用桥接只接收字符串白名单和最终 KV，不接收 D1/资源平台对象。
+- `src/server/d1-kv.ts`、`worker/runtime-env.ts` 与 `worker/index.ts`：Worker 优先沿用 `ZODIAC_KV`，否则把 Sites `DB` 包装为相同业务接口；首次 D1 读写前以两条幂等单语句建立最小表/索引并按绑定缓存初始化，Drizzle migration 仍是权威结构历史；应用桥接只接收字符串白名单和最终 KV，不接收 D1/资源平台对象。
 - `db/schema.ts` 与 `drizzle/`：定义最小 `zodiac_kv` 表和 `expires_at` 清理索引并保存生成迁移；Sites 构建会把 migration 打包到 `dist/.openai/drizzle/`。
 - `src/server/runtime.ts`：本地 `vite serve` 通过 Wrangler `vars` 传普通配置，通过 `secrets.required` 从父进程加载密钥与私盐；`REQUIRE_PERSISTENT_STORE=true` 时缺共享存储安全失败，生产构建不注入配置值。
 - `README.md` 是中文主入口并含简短 English summary；人格格式与部署边界分别见 `docs/PERSONA_FORMAT.md`、`docs/DEPLOYMENT.md`。
@@ -44,12 +44,13 @@
 - 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites 版本 1 已于 2026-08-01 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，截至 2026-08-02 访问模式仍为 `custom`，仅所有者可见。
 - `.openai/hosting.json` 已声明逻辑 D1 绑定 `DB`，仓库含 schema、生成 migration 和 Worker 适配；浏览器本地状态仍不上传。
 - 实际计算留存指标前仍必须由平台真实创建/绑定资源、应用 migration、配置稳定 `RATE_LIMIT_SALT` 与 `REQUIRE_PERSISTENT_STORE=true`；当前没有已验证的生产 D1、公开指标 API 或看板。
-- 本地 Worker-compatible 构建与 Sites 打包/发布已验证；Sites 环境变量 revision=0、entries=[]，生产站尚未配置模型或私盐，也未做生产聊天与限额验收。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
+- 本地 Worker-compatible 构建与 Sites 打包已验证；Sites version 2 已保存且来源提交为 `3038320`，访问仍为 custom owner-only。生产环境键已配置至 revision=1，但键存在不证明值有效，version 2 是否为当前线上版本、D1 migration、生产聊天、限额和事件读回均尚未验证。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
 - 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。当前没有项目级 `LLM_*`/`RATE_LIMIT_SALT` 配置或可安全复用的 localhost 模型上游，`POST /api/chat` 返回 503 `MODEL_NOT_CONFIGURED`，因此只能称“本地可看、玩法可体验”，不能称真实聊天可用。
 - 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
 - 2026-08-02 提交 `3d03825` 完成本地 Worker 环境桥接；DeepSeek 云端 `deepseek-chat` 通过项目外进程配置接入，`POST /api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复和有效剩余额度。仓库、日志和团队档案均不保存密钥或私盐值。
 - 同轮首页 Hero 在不改文案、颜色、卡片、动画或流程的前提下收紧信息密度；1440×900 标题固定两行且主 CTA 首屏可见，390×844 标题三行、说明与主 CTA 首屏可见，两视口均无横向溢出、控制台 error 为 0。当前门禁为 typecheck、Vitest 42/42、lint、生产构建和 SSR 4/4。
 - 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
+- 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；修复以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。受影响存储测试 9/9、typecheck、lint、生产构建与 SSR 4/4 通过；本次全量 Vitest 与 dev 空库 API 复跑因执行环境账户额度限制未完成，不能把该轮定向证据扩大为完整运行验收。
 
 ## Known Pitfalls
 

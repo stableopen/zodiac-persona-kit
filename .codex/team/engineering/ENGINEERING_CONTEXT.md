@@ -12,7 +12,7 @@
 - 本地状态：`src/lib/local-state.ts` 保存确认人格和最近 9 条当前会话；不上传本地历史。
 - 聊天：`src/server/chat.ts` 调用 OpenAI 兼容接口，只接受 user/assistant，最多发送最近 4 轮，默认最多 300 tokens。
 - 运行时桥接：`worker/index.ts` 优先沿用 `ZODIAC_KV`，否则由 `worker/runtime-env.ts` 把 Sites `DB` 包装为 `KeyValueStore`；`bridgeRuntimeEnv` 只把字符串白名单和最终 KV 写入应用全局，不扩散 DB/ASSETS/IMAGES 等平台对象。
-- Sites 持久化：`db/schema.ts` 定义 `zodiac_kv(key,value,expires_at,updated_at)` 与 `expires_at` 索引；`drizzle/0000_square_vanisher.sql`、`0001_pink_captain_midlands.sql` 由 Drizzle Kit 生成并随构建打包。业务模块不直接依赖 D1。
+- Sites 持久化：`db/schema.ts` 定义 `zodiac_kv(key,value,expires_at,updated_at)` 与 `expires_at` 索引；`drizzle/0000_square_vanisher.sql`、`0001_pink_captain_midlands.sql` 由 Drizzle Kit 生成并随构建打包。业务模块不直接依赖 D1；D1 KV 首次读写前用两条幂等单语句建立最小表/索引，并用绑定级 Promise 缓存避免同一 isolate 重复初始化，失败会清缓存后允许重试。Drizzle migration 仍是权威结构历史。
 - 本地开发配置：`vite.config.ts` 仅在 `command === "serve"` 时传入已有配置；普通字段进入 Wrangler `vars`，`LLM_API_KEY` 与 `RATE_LIMIT_SALT` 只以 `secrets.required` 名称声明并由 Wrangler 从父进程读取，build 不嵌入秘密。
 - 事件：`src/server/events.ts` 使用事件与安全元数据白名单；拒绝正文和额外字段。
 - 留存：`src/server/retention.ts` 使用 `RATE_LIMIT_SALT + x-zodiac-device` 的 SHA-256 匿名关联，不含 IP；设备状态 TTL 10 天，cohort TTL 35 天。
@@ -46,6 +46,8 @@
 - 2026-08-02 提交 `aea5a1c` 的完整门禁通过：typecheck、Vitest 9 文件 40/40、lint、vinext production build、SSR 4/4。
 - 2026-08-02 提交 `3d03825` 完成运行时环境桥接：测试先以缺少桥接函数 2/2 RED，再转为 2/2 GREEN；CEO 重启后 `/api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复、`quota.remaining=4`，回复先共情再给轻量行动建议。
 - 2026-08-02 Hero 密度优化验证：1440×900 标题 2 行、主 CTA 底部约 663px；390×844 标题 3 行、返回用户继续聊天与 Hero 主 CTA 均在首屏；两视口无横向溢出、控制台 error=0。最终 typecheck、Vitest 10 文件 42/42、lint、production build、SSR 4/4 通过。
+- 2026-08-02 提交 `3038320` 的 Public Beta 持久化基线曾通过 typecheck、Vitest 55/55、lint、production build、SSR 4/4，并以真实 SQLite 覆盖 migration、upsert、到期清理和索引。
+- 2026-08-02 空 D1 运行缺口修复：新增测试先以 `no such table: zodiac_kv` 失败，再验证首次 get/put 前仅初始化一次表与索引；存储相关 3 文件 9/9、typecheck、lint、production build、SSR 4/4 通过。因执行环境账户额度限制，本次未重跑全量 Vitest，也未完成 fresh Miniflare dev/API 实跑；不得把 9/9 定向结果表述为本提交全量 56/56。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 
@@ -57,10 +59,10 @@
 - 来源 IP 可信度依赖生产代理正确覆盖连接来源头；OG origin 依赖页面请求经过当前 Worker。
 - 尚未用真实线上模型完成生产聊天验证，也未全面验证真实手机 Web Share。
 - 本地源码已提交；Sites 源提交 `9442e73` 已打包为版本 1，并于 2026-08-01 成功部署为仅所有者可见的生产站。
-- 当前 Sites 环境变量修订为初始空配置；在线聊天、私盐限额和持久留存尚未在生产启用或验证。
+- Sites version 2 已保存且来源提交为 `3038320`；环境变量 revision=1 已出现模型、私盐、限额和严格存储键，但秘密值未读取、有效性未验证。站点仍为 custom owner-only，version 2 当前是否已部署以及在线聊天、私盐限额和持久留存均尚未完成生产验收。
 - GitHub CLI 尚未安装，公开 GitHub 仓库与远程 Node 22 CI 尚未创建或运行。
-- 2026-08-02 实时审计：Sites 访问模式为 `custom`，仅 1 个所有者、0 个组和 0 个外部访客；环境变量 revision=0、entries=[]；本地 `localhost:3000` 返回 200。
-- 当前 HEAD 与 Sites 版本 1 的运行时代码一致，差异仅为后续 `.codex` 上下文文档；生产版本源提交为 `9442e73`。
+- 2026-08-02 实时审计：Sites 访问模式为 `custom`，仅 1 个所有者、0 个组和 0 个外部访客；环境变量 revision=1 已配置所需键，秘密值未读取；Sites version 2 已保存但当前生产部署版本未由可见状态确认。
+- 当前空 D1 初始化修复晚于 Sites version 2 的源提交 `3038320`，尚未保存或部署到 Sites。
 - 仓库已实现 Sites D1 适配和迁移，但当前已部署的 Sites 版本尚未应用本候选代码/迁移，不能声称生产持久化已可用。
 - 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由当前 dev 服务进程持有，重启时若未再次注入会安全降级为 503。生产 Sites 仍未配置或验证真实聊天。
 

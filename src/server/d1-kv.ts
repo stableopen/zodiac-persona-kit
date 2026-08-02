@@ -15,6 +15,20 @@ interface D1KeyValueRow {
   expires_at: unknown;
 }
 
+const CREATE_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS "zodiac_kv" (
+  "key" TEXT PRIMARY KEY NOT NULL,
+  "value" TEXT NOT NULL,
+  "expires_at" INTEGER,
+  "updated_at" INTEGER NOT NULL
+)
+`.trim();
+
+const CREATE_EXPIRY_INDEX_SQL = `
+CREATE INDEX IF NOT EXISTS "zodiac_kv_expires_at_idx"
+ON "zodiac_kv" ("expires_at")
+`.trim();
+
 const SELECT_VALUE_SQL = `
 SELECT "value", "expires_at"
 FROM "zodiac_kv"
@@ -41,12 +55,38 @@ ON CONFLICT("key") DO UPDATE SET
   "updated_at" = excluded."updated_at"
 `.trim();
 
+const schemaInitialization = new WeakMap<D1Database, Promise<void>>();
+
+async function ensureD1KeyValueSchema(database: D1Database): Promise<void> {
+  const existing = schemaInitialization.get(database);
+  if (existing) return existing;
+
+  // Drizzle migrations remain the authoritative schema history. These
+  // idempotent statements only bootstrap a fresh local/Sites binding before
+  // the first request and are cached for the lifetime of the D1 binding.
+  const initialization = (async () => {
+    await database.prepare(CREATE_TABLE_SQL).run();
+    await database.prepare(CREATE_EXPIRY_INDEX_SQL).run();
+  })();
+  schemaInitialization.set(database, initialization);
+
+  try {
+    await initialization;
+  } catch (error) {
+    if (schemaInitialization.get(database) === initialization) {
+      schemaInitialization.delete(database);
+    }
+    throw error;
+  }
+}
+
 export function createD1KeyValueStore(
   database: D1Database,
   now: () => number = Date.now,
 ): KeyValueStore {
   return {
     async get(key) {
+      await ensureD1KeyValueSchema(database);
       const checkedAt = now();
       const row = await database
         .prepare(SELECT_VALUE_SQL)
@@ -69,6 +109,7 @@ export function createD1KeyValueStore(
     },
 
     async put(key, value, options) {
+      await ensureD1KeyValueSchema(database);
       const ttlSeconds = options?.expirationTtl;
       if (
         ttlSeconds !== undefined &&

@@ -33,6 +33,9 @@ class FakeStatement implements D1PreparedStatement {
   }
 
   async run(): Promise<unknown> {
+    if (/^\s*CREATE\b/i.test(this.sql)) {
+      return { success: true };
+    }
     if (/^\s*DELETE\b/i.test(this.sql)) {
       if (this.sql.includes('"key" = ?1')) {
         const [key, expiresAt] = this.bindings;
@@ -51,7 +54,7 @@ class FakeStatement implements D1PreparedStatement {
       return { success: true };
     }
     if (!/^\s*INSERT\b/i.test(this.sql)) {
-      throw new Error("run() 只允许 DELETE/INSERT/UPSERT");
+      throw new Error("run() 只允许 CREATE/DELETE/INSERT/UPSERT");
     }
     const [key, value, expiresAt, updatedAt] = this.bindings;
     this.database.rows.set(String(key), {
@@ -79,8 +82,11 @@ describe("Sites D1 KV 适配", () => {
     const store = createD1KeyValueStore(database, () => 1_000);
 
     await expect(store.get("key-'--")).resolves.toBeNull();
-    expect(database.preparedSql).toHaveLength(1);
-    expect(database.preparedSql[0]).not.toContain("key-'--");
+    const selectStatements = database.preparedSql.filter((sql) =>
+      /^\s*SELECT\b/i.test(sql),
+    );
+    expect(selectStatements).toHaveLength(1);
+    expect(selectStatements[0]).not.toContain("key-'--");
   });
 
   it("以单条 UPSERT 写入并覆盖已有值", async () => {
