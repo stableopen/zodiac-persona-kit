@@ -23,13 +23,14 @@
 
 ## 当前阶段
 
-- 当前 Git 分支与公开默认分支均为 `main`，`origin` 为 `https://github.com/yewending/zodiac-persona-kit.git`；公开代码候选为 `765036a`，完整历史已推送，正式发布标签按要求尚未创建。
+- 2026-08-03 用户明确把当前交付目标收敛为 GitHub 源码与本地运行；Sites 仅是可选预览，不作可达性承诺，也不再是当前交付或验收门槛。
+- 当前 Git 分支与公开默认分支均为 `main`，`origin` 为 `https://github.com/yewending/zodiac-persona-kit.git`；最终交付提交以 GitHub `main` 与对应 Actions 为准，正式发布标签按后续明确需求处理。
 - V0.2 冻结范围内的 12 人格、测试、直选、双声道、确认、本地续聊、分享机制、导出和匿名事件已实现；没有扩展账户、社区、付费或更多人格。
-- Sites version 3 已部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`；2026-08-03 访问策略切为 public（access revision 2）。
+- Sites version 4 曾以 `0ade15d` 部署并沿用 public 访问，但只作为不保证可达的可选预览。
 - 公开生产已验证 `/`、`/explore`、匿名 DeepSeek 非空聊天、`personaVersion=0.1.0`、有效额度和事件写入；D1 额度跨部署延续亦已通过。生产变量只核对键名与 secret 标志，未读取或记录值。
-- Node.js 22 Actions run `30783329298` 已在 `765036a` 上通过安装、typecheck、全量 Vitest 56/56、lint、生产构建和 SSR 4/4；从公开 URL 全新克隆后按 README 复现相同门禁，并以无密钥入口验证 `/`、`/explore` 为 200。
+- Node.js 22 Actions run `30784605335` 已在 `0ade15d` 上通过；此前从公开 URL 全新克隆 `765036a` 后按 README 复现安装、typecheck、全量 Vitest 56/56、lint、生产构建和 SSR 4/4，并以无密钥入口验证 `/`、`/explore` 为 200。
 - `765036a` 已把 Next.js 升级到 `16.2.12` 并清除 Next.js 自身的直接高危公告；生产 audit 仍有 3 项来自上游固定 PostCSS/Sharp 的 high、critical=0，当前无安全 non-major 自动修复，作为已知发布限制持续跟踪。
-- 开源发布门禁为 P0=0、P1=0；产品 Public Beta 仍保留 1 项 P1：第二会话/设备打开真实分享链接及生产事件聚合读回尚未记录完成。版本标签仍等待产品所有者验收。
+- 当前 GitHub 交付门禁是 `main` 可获取、README 本地路径可执行且 Node.js 22 Actions 通过；第二会话/设备分享与生产事件聚合读回不再是本次交付阻断。它们仍可作为后续 Public Beta 运营验证，不能冒充已完成证据。
 - 当前没有真实留存、传播、获客、付费或商业数据；相关结论继续标为假设。
 - 冻结产品简报：`docs/V0.2_PRODUCT_DECISION.md`。
 - 项目总览与命令：`.codex/PROJECT_CONTEXT.md`。
@@ -37,7 +38,7 @@
 ## 下一步
 
 - 保持产品范围不扩张；本地重启时继续由所有者通过项目外进程配置提供模型变量与私盐，不得把值写入仓库、日志或团队档案。
-- 由产品所有者完成第二会话/设备真实分享与生产事件聚合读回验收；通过前不关闭该产品 P1，也不创建 `v0.2.0` 标签。
+- 保持 GitHub `main`、README 与 Node.js 22 Actions 一致；在线预览、第二会话分享、事件聚合读回和版本标签均按后续明确需求处理，不影响当前源码交付。
 - 每次公开 `main` 更新继续以 Node.js 22 Actions 和全新依赖安装为发布门禁。
 - 跟踪 Next.js 对 PostCSS/Sharp 审计项的兼容升级；不得用 `audit fix --force` 或未经验证的 override 换取表面归零。
 - 等待真实受邀选择和首批完整 7 日 cohort；数据出现前不宣称传播、留存或商业模式成立。

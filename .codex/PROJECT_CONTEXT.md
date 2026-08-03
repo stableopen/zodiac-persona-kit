@@ -41,7 +41,8 @@
 
 ## Deploy / Run Notes
 
-- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites version 3 已于 2026-08-02 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，来源提交为 `5070ddd`。2026-08-03 访问策略已切为 public（access revision 2）。
+- 2026-08-03 用户将当前交付范围收敛为“GitHub `main` 源码正常 + README 本地运行路径”；在线 Sites 仅作可选预览，不承诺网络或地区可达，不再是当前验收门槛。第二会话分享和生产事件聚合读回转为后续验证项，不再阻断本次 GitHub 交付。
+- GitHub 提交 `0ade15d` 的 Node.js 22 Actions run `30784605335` 已通过；同一源码曾保存并部署为 Sites version 4、访问策略沿用 public，但该预览状态不替代 GitHub 源码与本地运行验收。
 - `.openai/hosting.json` 已声明逻辑 D1 绑定 `DB`，仓库含 schema、生成 migration 和 Worker 适配；浏览器本地状态仍不上传。
 - Sites version 3 的生产 `/`、`/explore`、真实 DeepSeek 聊天和事件写入已通过；同一访客额度从 version 2 的 3 延续到 version 3 的 2，证明共享 D1 在跨部署场景保持状态。公开后匿名真实聊天再次返回非空回复、`personaVersion=0.1.0` 与 `quota.remaining=4`。该证据不等于已有公开指标 API、看板或真实留存数据。
 - 生产环境变量 revision=1 已包含模型、私盐、限额与严格持久存储所需键；核对只读取键名和 secret 标志，没有读取或记录值。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
@@ -62,6 +63,7 @@
 - 本地 DeepSeek 配置只存在于当前 dev 服务进程；服务重启后必须再次从项目外注入，不得把值写入仓库或 Context。缺配置时接口按既有 503 降级。
 - 生产代理必须清洗并可信设置 `cf-connecting-ip` / `x-forwarded-for`；直接信任客户端自带转发头会削弱 IP 限额。
 - 市场、留存和商业判断仍是假设；事件已具备安全区分，但尚无真实用户数据。
+- Sites、第二会话分享和生产聚合读回可能继续作为后续运营验证，但不得重新表述为当前 GitHub 交付阻断，除非用户再次扩大验收范围。
 - 当前 KV 接口只有 `get/put`，cohort 聚合不是原子计数；适合 V0.2 小流量验证，正式放量前需换成原子计数或事务存储。
 - D1 每次写入都会按索引清理过期行；停流时物理清理要等后续请求触发，且并行额度写入会重复清理。该方案只适用于小流量 Public Beta，不作高并发或定时删除承诺。
 - `headers()` 会使 metadata 进入动态渲染；SSR 已验证恶意 forwarded/internal origin 输入会被 Worker 覆写，`https://zodiac.example/` 仍生成该 origin 的绝对 `/og.png`，无 `pages.dev` 回退。
