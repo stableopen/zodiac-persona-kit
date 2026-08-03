@@ -50,7 +50,7 @@
 - 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
 - 2026-08-02 提交 `3d03825` 完成本地 Worker 环境桥接；DeepSeek 云端 `deepseek-chat` 通过项目外进程配置接入，`POST /api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复和有效剩余额度。仓库、日志和团队档案均不保存密钥或私盐值。
 - 同轮首页 Hero 在不改文案、颜色、卡片、动画或流程的前提下收紧信息密度；1440×900 标题固定两行且主 CTA 首屏可见，390×844 标题三行、说明与主 CTA 首屏可见，两视口均无横向溢出、控制台 error 为 0。当前门禁为 typecheck、Vitest 42/42、lint、生产构建和 SSR 4/4。
-- 公开 MIT 仓库已迁移到 `https://github.com/stableye/zodiac-persona-kit`，默认分支为 `main`、GitHub homepage 保持为空、完整 Git 历史已保留；尚未创建版本标签。提交 `765036a` 的 Node.js 22 Actions run `30783329298` 已通过全部门禁。
+- 公开 MIT 仓库已迁移到 `https://github.com/stableye/zodiac-persona-kit`，默认分支为 `main`，完整 Git 历史已保留；GitHub About 已设置中文 description，homepage 指向公开体验站，并设置 `ai-persona`、`chinese-ai`、`cloudflare-workers`、`interactive-demo`、`nextjs`、`open-source`、`openai-compatible`、`zodiac` 八个 topics。StableYe 路径迁移提交 `9fc59f6` 的 Node.js 22 Actions run `30793663522` 已通过全部门禁；尚未创建版本标签。
 - 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；提交 `5070ddd` 以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。当时基线 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、生产构建与 SSR 4/4；`git diff --check` 亦通过。
 - 2026-08-03 首次公开 CI 暴露两项跨环境阻断：npm 10 clean install 缺少嵌套锁文件项，以及 Node 22 `node:sqlite` 不接受编号占位符 `?1`。提交 `3243e89` 补齐最小锁文件项，提交 `65f5aea` 改用 D1/SQLite 均支持的裸 `?`；同代 Node 22 本地门禁与远程 CI 均通过。
 - 提交 `765036a` 把 Next.js 从 `16.2.6` 更新到安全补丁 `16.2.12`，清除 Next.js 自身的直接高危公告；没有使用 `npm audit fix --force` 或超出上游兼容范围的 dependency override。
