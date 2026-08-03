@@ -1,6 +1,6 @@
 # 技术负责人上下文
 
-更新日期：2026-08-02
+更新日期：2026-08-03
 
 ## 架构事实
 
@@ -13,6 +13,7 @@
 - 聊天：`src/server/chat.ts` 调用 OpenAI 兼容接口，只接受 user/assistant，最多发送最近 4 轮，默认最多 300 tokens。
 - 运行时桥接：`worker/index.ts` 优先沿用 `ZODIAC_KV`，否则由 `worker/runtime-env.ts` 把 Sites `DB` 包装为 `KeyValueStore`；`bridgeRuntimeEnv` 只把字符串白名单和最终 KV 写入应用全局，不扩散 DB/ASSETS/IMAGES 等平台对象。
 - Sites 持久化：`db/schema.ts` 定义 `zodiac_kv(key,value,expires_at,updated_at)` 与 `expires_at` 索引；`drizzle/0000_square_vanisher.sql`、`0001_pink_captain_midlands.sql` 由 Drizzle Kit 生成并随构建打包。业务模块不直接依赖 D1；D1 KV 首次读写前用两条幂等单语句建立最小表/索引，并用绑定级 Promise 缓存避免同一 isolate 重复初始化，失败会清缓存后允许重试。Drizzle migration 仍是权威结构历史。
+- D1/SQLite SQL 参数统一使用裸 `?` 占位符；该形式同时兼容 Cloudflare D1 与 Node.js 22 `node:sqlite`。Node 22 对 `?1` 编号占位符的 positional `run(...bindings)` 会报 `ERR_SQLITE_ERROR`。
 - 本地开发配置：`vite.config.ts` 仅在 `command === "serve"` 时传入已有配置；普通字段进入 Wrangler `vars`，`LLM_API_KEY` 与 `RATE_LIMIT_SALT` 只以 `secrets.required` 名称声明并由 Wrangler 从父进程读取，build 不嵌入秘密。
 - 事件：`src/server/events.ts` 使用事件与安全元数据白名单；拒绝正文和额外字段。
 - 留存：`src/server/retention.ts` 使用 `RATE_LIMIT_SALT + x-zodiac-device` 的 SHA-256 匿名关联，不含 IP；设备状态 TTL 10 天，cohort TTL 35 天。
@@ -47,7 +48,11 @@
 - 2026-08-02 提交 `3d03825` 完成运行时环境桥接：测试先以缺少桥接函数 2/2 RED，再转为 2/2 GREEN；CEO 重启后 `/api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复、`quota.remaining=4`，回复先共情再给轻量行动建议。
 - 2026-08-02 Hero 密度优化验证：1440×900 标题 2 行、主 CTA 底部约 663px；390×844 标题 3 行、返回用户继续聊天与 Hero 主 CTA 均在首屏；两视口无横向溢出、控制台 error=0。最终 typecheck、Vitest 10 文件 42/42、lint、production build、SSR 4/4 通过。
 - 2026-08-02 提交 `3038320` 的 Public Beta 持久化基线曾通过 typecheck、Vitest 55/55、lint、production build、SSR 4/4，并以真实 SQLite 覆盖 migration、upsert、到期清理和索引。
-- 2026-08-02 空 D1 运行缺口修复：新增测试先以 `no such table: zodiac_kv` 失败，再验证首次 get/put 前仅初始化一次表与索引；修复提交为 `5070ddd`。当前 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、production build、SSR 4/4 和 `git diff --check`。
+- 2026-08-02 空 D1 运行缺口修复：新增测试先以 `no such table: zodiac_kv` 失败，再验证首次 get/put 前仅初始化一次表与索引；修复提交为 `5070ddd`。当时基线 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、production build、SSR 4/4 和 `git diff --check`。
+- 2026-08-03 公开 CI run `30781401157` 在 npm 10 clean install 发现锁文件缺少 `@emnapi/core@1.10.0` 与 `@emnapi/runtime@1.10.0`；提交 `3243e89` 只补齐两个嵌套条目，npm 10 clean install 与完整本地门禁通过。
+- 2026-08-03 CI run `30781979375` 在 Node 22 `node:sqlite` 发现 `?1` 导致 `column index out of range`；Node 22.13 探针证实裸 `?` 正常，提交 `65f5aea` 完成最小兼容修复。run `30782330670` 随后通过安装、typecheck、Vitest 56/56、lint、build 与 SSR 4/4。
+- 提交 `765036a` 把 Next.js 从 `16.2.6` 更新到 `16.2.12`，清除 Next.js 自身的直接高危公告并保留 npm 10 所需嵌套锁文件项。Node 22 Actions run `30783329298` 全绿。
+- 公开仓库 `https://github.com/yewending/zodiac-persona-kit` 的默认分支为 `main`。从该 URL 全新克隆 `765036a` 后，README 安装与全部门禁通过；无密钥 `npm run dev` 在 `localhost:3101` 的 `/`、`/explore` 返回 200，验证后服务已关闭且克隆保持 clean。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 
@@ -57,16 +62,17 @@
 - D1 每个 put 先按 `expires_at` 索引清理到期行，再 upsert；过期 get 做条件删除。停流期间物理删除要等后续请求，且并行计数写会重复清理，仅适合小流量 Beta。
 - 访客额度同样是读后写；高并发可能竞态，且共享公网 IP 可能让同一网络用户共享限额。
 - 来源 IP 可信度依赖生产代理正确覆盖连接来源头；OG origin 依赖页面请求经过当前 Worker。
-- 尚未全面验证真实手机 Web Share；公开匿名与第二会话/设备传播链路仍是 Public Beta P1。
-- Sites version 3 已于 2026-08-02 部署，来源提交为 `5070ddd`；站点 active，访问模式为 `custom`，仅 1 个所有者、0 个外部访客。
-- 生产 `/`、`/explore`、真实 DeepSeek 非空聊天、事件写入已通过；额度从 version 2 的 3 延续到 version 3 的 2，证明 D1 持久状态跨部署延续。
+- 尚未全面验证真实手机 Web Share；第二会话/设备传播与生产事件聚合读回仍是产品 Public Beta P1。
+- Sites version 3 已于 2026-08-02 部署，来源提交为 `5070ddd`；2026-08-03 访问模式已切为 public（access revision 2）。
+- 生产 `/`、`/explore`、匿名 DeepSeek 非空聊天、`personaVersion=0.1.0`、有效额度和事件写入已通过；额度从 version 2 的 3 延续到 version 3 的 2，证明 D1 持久状态跨部署延续。
 - 环境变量 revision=1 已包含模型、私盐、限额和严格存储键；只读取键名与 secret 标志，没有读取、回显或保存值。
-- GitHub remote、公开仓库、远程 Node.js 22 CI、全新克隆复现和正式标签均未完成。
+- GitHub remote、公开仓库、远程 Node.js 22 CI 与全新克隆复现已完成；正式标签按要求未创建。
+- `npm audit --omit=dev` 在 `765036a` 上仍为 high=3、critical=0：Next.js 固定 `postcss@8.4.31`，并在兼容范围内使用 `sharp@0.34.5`；当前无安全 non-major 自动修复。项目不接收用户 CSS，Worker 图像转换使用平台 `IMAGES`，但仍需跟踪上游版本，禁止未经验证的强制 override。
 - 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由 dev 服务进程持有，重启时若未再次注入会安全降级为 503。仅 `.env.example` 被跟踪，`.env*`、`.wrangler/`、本地日志和临时输出均保持忽略。
 
 ## 下一步
 
 1. 保留现有架构和 V0.1/V0.2 路径；本地重启继续使用项目外进程配置，不创建秘密文件、不实现假回复。
-2. 建立 GitHub remote 后运行 Node.js 22 远程 CI，并从全新克隆按 README 复现完整门禁。
-3. 获得所有者明确授权后切换公开访问；用未登录浏览器走完核心路径，用第二会话/设备验证真实分享链接并读回一次生产事件聚合。
-4. 正式放量前把访客额度和留存 cohort 更新迁移到原子计数、事务存储或单写者聚合；真实数据出现前不宣称市场、传播、留存或商业成立。
+2. 继续把 Node.js 22 远程 CI 与全新依赖安装作为公开 `main` 的发布门禁；不要为当前成功提交补无意义 PR。
+3. 由产品所有者用第二会话/设备验证真实分享链接并读回一次生产事件聚合；通过前不创建 `v0.2.0` 标签。
+4. 跟踪 Next.js 对 PostCSS/Sharp 审计项的兼容修复；正式放量前把访客额度和留存 cohort 更新迁移到原子计数、事务存储或单写者聚合。真实数据出现前不宣称市场、传播、留存或商业成立。

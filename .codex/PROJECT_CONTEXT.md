@@ -28,7 +28,7 @@
 - `db/schema.ts` 与 `drizzle/`：定义最小 `zodiac_kv` 表和 `expires_at` 清理索引并保存生成迁移；Sites 构建会把 migration 打包到 `dist/.openai/drizzle/`。
 - `src/server/runtime.ts`：本地 `vite serve` 通过 Wrangler `vars` 传普通配置，通过 `secrets.required` 从父进程加载密钥与私盐；`REQUIRE_PERSISTENT_STORE=true` 时缺共享存储安全失败，生产构建不注入配置值。
 - `README.md` 是中文主入口并含简短 English summary；人格格式与部署边界分别见 `docs/PERSONA_FORMAT.md`、`docs/DEPLOYMENT.md`。
-- `.github/workflows/ci.yml` 配置为在 Node.js 22 上执行安装、类型、单测、lint、构建和构建产物 SSR；没有发布步骤或密钥，尚未在 GitHub 真实运行。
+- `.github/workflows/ci.yml` 在 Node.js 22.13.0 上执行安装、类型、单测、lint、构建和构建产物 SSR；没有发布步骤或密钥。公开仓库 Actions run `30783329298` 已在提交 `765036a` 上真实通过。
 
 ## Decisions
 
@@ -41,16 +41,19 @@
 
 ## Deploy / Run Notes
 
-- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites version 3 已于 2026-08-02 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，来源提交为 `5070ddd`。站点状态为 active，访问模式仍为 `custom`，仅 1 个所有者可见、0 个外部访客。
+- 远程 CI 与生产部署状态以当前仓库 Actions 和部署记录为准；Sites version 3 已于 2026-08-02 部署到 `https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site`，来源提交为 `5070ddd`。2026-08-03 访问策略已切为 public（access revision 2）。
 - `.openai/hosting.json` 已声明逻辑 D1 绑定 `DB`，仓库含 schema、生成 migration 和 Worker 适配；浏览器本地状态仍不上传。
-- Sites version 3 的生产 `/`、`/explore`、真实 DeepSeek 聊天和事件写入已通过；同一访客额度从 version 2 的 3 延续到 version 3 的 2，证明共享 D1 在跨部署场景保持状态。该证据不等于已有公开指标 API、看板或真实留存数据。
+- Sites version 3 的生产 `/`、`/explore`、真实 DeepSeek 聊天和事件写入已通过；同一访客额度从 version 2 的 3 延续到 version 3 的 2，证明共享 D1 在跨部署场景保持状态。公开后匿名真实聊天再次返回非空回复、`personaVersion=0.1.0` 与 `quota.remaining=4`。该证据不等于已有公开指标 API、看板或真实留存数据。
 - 生产环境变量 revision=1 已包含模型、私盐、限额与严格持久存储所需键；核对只读取键名和 secret 标志，没有读取或记录值。EdgeOne 尚未真实部署验证，`edge-functions/api/*` 只视为适配器。
 - 2026-08-02 本地优先复核：`http://localhost:3000/` 与 `/explore` 返回 200；双声道分享入口使用匿名 `createDuelShareCard` 路径，聚焦测试 22/22 通过。随后通过项目外进程配置接入真实 DeepSeek，补齐本地非空聊天回复证据；重启后仍需重新从项目外注入配置。
 - 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
 - 2026-08-02 提交 `3d03825` 完成本地 Worker 环境桥接；DeepSeek 云端 `deepseek-chat` 通过项目外进程配置接入，`POST /api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复和有效剩余额度。仓库、日志和团队档案均不保存密钥或私盐值。
 - 同轮首页 Hero 在不改文案、颜色、卡片、动画或流程的前提下收紧信息密度；1440×900 标题固定两行且主 CTA 首屏可见，390×844 标题三行、说明与主 CTA 首屏可见，两视口均无横向溢出、控制台 error 为 0。当前门禁为 typecheck、Vitest 42/42、lint、生产构建和 SSR 4/4。
-- 最小开源发布准备完成了本地文件、CI 配置和私有 Sites 部署；GitHub 建库、公开推送与远程 CI 仍未完成，本机缺少 GitHub CLI。
-- 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；提交 `5070ddd` 以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。当前 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、生产构建与 SSR 4/4；`git diff --check` 亦通过。
+- 公开 MIT 仓库已发布到 `https://github.com/yewending/zodiac-persona-kit`，默认分支为 `main`、homepage 指向公开 Sites、完整 Git 历史已推送；尚未创建版本标签。提交 `765036a` 的 Node.js 22 Actions run `30783329298` 已通过全部门禁。
+- 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；提交 `5070ddd` 以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。当时基线 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、生产构建与 SSR 4/4；`git diff --check` 亦通过。
+- 2026-08-03 首次公开 CI 暴露两项跨环境阻断：npm 10 clean install 缺少嵌套锁文件项，以及 Node 22 `node:sqlite` 不接受编号占位符 `?1`。提交 `3243e89` 补齐最小锁文件项，提交 `65f5aea` 改用 D1/SQLite 均支持的裸 `?`；同代 Node 22 本地门禁与远程 CI 均通过。
+- 提交 `765036a` 把 Next.js 从 `16.2.6` 更新到安全补丁 `16.2.12`，清除 Next.js 自身的直接高危公告；没有使用 `npm audit fix --force` 或超出上游兼容范围的 dependency override。
+- 从公开 GitHub URL 全新克隆 `765036a` 到空目录后，按 README 完成 `npm ci`、typecheck、Vitest 56/56、lint、build 和 SSR 4/4；无密钥启动入口后 `/` 与 `/explore` 均返回 200，验证目录保持 clean。
 
 ## Known Pitfalls
 
@@ -62,7 +65,8 @@
 - 当前 KV 接口只有 `get/put`，cohort 聚合不是原子计数；适合 V0.2 小流量验证，正式放量前需换成原子计数或事务存储。
 - D1 每次写入都会按索引清理过期行；停流时物理清理要等后续请求触发，且并行额度写入会重复清理。该方案只适用于小流量 Public Beta，不作高并发或定时删除承诺。
 - `headers()` 会使 metadata 进入动态渲染；SSR 已验证恶意 forwarded/internal origin 输入会被 Worker 覆写，`https://zodiac.example/` 仍生成该 origin 的绝对 `/og.png`，无 `pages.dev` 回退。
-- 当前本地门禁运行于 Node.js 24.13.0；最低 Node.js 22.13.0 与 CI 的 Node.js 22 目标仍需由真实 GitHub Actions 运行复验。
+- Node.js 24.13.0 与 Node.js 22.13.0 门禁均已通过；SQL 绑定必须继续使用 D1 与 Node 22 `node:sqlite` 都支持的裸 `?` 占位符，不得回退到编号占位符 `?1`。
+- `npm audit --omit=dev` 在 `765036a` 上仍报告 high=3、critical=0，均由 Next.js 固定的 `postcss@8.4.31` 与兼容范围内 `sharp@0.34.5` 传递；当前没有安全的 non-major 自动修复。项目不接收用户 CSS，Worker 图像转换走平台 `IMAGES`，但仍须跟踪上游兼容更新，不能宣称依赖审计为零。
 - `ZODIAC_KV` 是项目内部 KV 接口；EdgeOne 可直接提供兼容绑定，Sites 则由 Worker 把 `DB` 适配为该接口。Sites version 3 已用生产额度跨部署延续证明当前 D1 路径可用；其他平台仍须各自完成真实资源和迁移验收。
 
 ## Verification Pointers
