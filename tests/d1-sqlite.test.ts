@@ -79,13 +79,13 @@ describe("生成迁移与真实 SQLite", () => {
       await store.put("new", "3", { expirationTtl: 60 });
       expect(
         sqlite
-          .prepare("SELECT COUNT(*) AS count FROM zodiac_kv WHERE key = ?1")
+          .prepare("SELECT COUNT(*) AS count FROM zodiac_kv WHERE key = ?")
           .get("expired"),
       ).toEqual({ count: 0 });
       expect(
         sqlite
           .prepare(
-            "SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?1",
+            "SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?",
           )
           .get("zodiac_kv_expires_at_idx"),
       ).toEqual({ name: "zodiac_kv_expires_at_idx" });

@@ -37,7 +37,7 @@ class FakeStatement implements D1PreparedStatement {
       return { success: true };
     }
     if (/^\s*DELETE\b/i.test(this.sql)) {
-      if (this.sql.includes('"key" = ?1')) {
+      if (/"key"\s*=\s*\?/.test(this.sql)) {
         const [key, expiresAt] = this.bindings;
         const row = this.database.rows.get(String(key));
         if (row?.expires_at === Number(expiresAt)) {

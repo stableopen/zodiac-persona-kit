@@ -32,23 +32,23 @@ ON "zodiac_kv" ("expires_at")
 const SELECT_VALUE_SQL = `
 SELECT "value", "expires_at"
 FROM "zodiac_kv"
-WHERE "key" = ?1
+WHERE "key" = ?
 LIMIT 1
 `.trim();
 
 const DELETE_EXPIRED_ROWS_SQL = `
 DELETE FROM "zodiac_kv"
-WHERE "expires_at" <= ?1
+WHERE "expires_at" <= ?
 `.trim();
 
 const DELETE_EXPIRED_KEY_SQL = `
 DELETE FROM "zodiac_kv"
-WHERE "key" = ?1 AND "expires_at" = ?2
+WHERE "key" = ? AND "expires_at" = ?
 `.trim();
 
 const UPSERT_VALUE_SQL = `
 INSERT INTO "zodiac_kv" ("key", "value", "expires_at", "updated_at")
-VALUES (?1, ?2, ?3, ?4)
+VALUES (?, ?, ?, ?)
 ON CONFLICT("key") DO UPDATE SET
   "value" = excluded."value",
   "expires_at" = excluded."expires_at",
