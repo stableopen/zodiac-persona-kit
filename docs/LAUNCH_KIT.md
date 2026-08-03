@@ -4,15 +4,15 @@
 
 ## 统一事实底稿
 
-- 核心主张：**让 AI 换一种说法，不换事实。**
+- 核心主张：**给 AI 设置一个更懂你的星座。**
 - [AI星座搭子 / Persona Kit](https://github.com/stableye/zodiac-persona-kit) 是真实互动体验与 12 套人格语义源：匿名比较同一道题的两种审核预置回答，选择后揭示差异，再由用户主动确认 AI 搭子。
 - [十二星座沟通风格 / Communication Skill](https://github.com/stableye/zodiac-communication-skill) 是可安装、可审计的 12 套中文 Agent 沟通协议，支持指定人格、按任务透明推荐、双人格并排比较。
 - 两边只改变语气、推理组织、回答结构、鼓励和分歧方式；不改变事实、证据、不确定性、安全要求、风险等级或用户任务。
 - 星座只是方便记忆的协议标签，不是运势、占星预测、真人性格推断、心理诊断或科学人格测量。
 - Persona Kit 的核心 A/B 路径无需登录，也不会为比较额外调用两个模型；只有在线聊天需要自行配置兼容 OpenAI Chat Completions 的模型服务。
 - Communication Skill 运行时只用 Python 标准库，不需要网络、账号、API 密钥、UI 或长期记忆。
-- 两个仓库均为 MIT 开源。公开体验站是 Persona Kit 的网页体验，不是 Skill 的执行环境。
-- README 动图边界：Persona 动图是基于当前 `main` 的同版本本地可复现流程示意，不是公开站录屏；Skill 动图来自真实安装与 CLI 命令输出，不仿任何 Agent 产品界面。
+- 两个仓库均为 MIT 开源，所有公开入口统一指向各自 GitHub 仓库。
+- 两个 README 的动图分别展示 Persona Kit 的选择流程和 Communication Skill 的核心命令。
 
 ## 约 15–22 秒短视频脚本
 
@@ -23,7 +23,7 @@
 | 0–3 秒 | 首页主张，进入匿名 A/B | 同一道题，两种 AI 回答。你更想听哪一种？ |
 | 3–8 秒 | 并排显示声道 A / B | 先不看标签，只凭表达盲选。 |
 | 8–13 秒 | 点击一边，揭示处女座 / 双鱼座差异 | 选择后才揭示：一个结构审查，一个先接住感受。 |
-| 13–18 秒 | 确认 AI 搭子，出现双仓 CTA | 让 AI 换一种说法，不换事实。先体验，再把协议装进 Agent。 |
+| 13–18 秒 | 确认 AI 搭子，出现双仓 CTA | 给 AI 设置一个更懂你的星座。项目和 Skill 都已在 GitHub 开源。 |
 
 ### 脚本 2：同一个任务，三种调用方式（约 20 秒）
 
@@ -41,32 +41,30 @@
 | 0–4 秒 | 12 人格卡片快速切换 | 星座在这里不是算命，是 12 个容易记住的沟通协议标签。 |
 | 4–10 秒 | A/B 揭示 + CLI compare | 网页负责真实体验，Skill 负责可安装、可审计。 |
 | 10–14 秒 | 边界文字：事实 / 安全 / 不确定性不变 | 语气可以换，事实、安全和风险不能换。 |
-| 14–17 秒 | GitHub 与体验站 CTA | 两仓 MIT 开源。来选一个更对味的 AI 搭子。 |
+| 14–17 秒 | 两个 GitHub 仓库 CTA | 两仓 MIT 开源。来选一个更懂你的 AI 搭子。 |
 
 ## 各平台可直接发布文案
 
 ### 视频号
 
-同一道题，两种 AI 回答，你会选哪一种？我做了一个匿名 A/B：先凭表达盲选，再揭示两套沟通协议的差异，最后由你确认 AI 搭子。配套 Skill 还能把 12 套中文沟通协议装进 Agent。星座只是好记的标签，不做运势或真人性格判断。让 AI 换一种说法，不换事实。在线体验：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/>；源码见评论区 GitHub。
+同一道题，两种 AI 回答，你会选哪一种？我做了一个开源项目：先凭表达选择，再揭示两种沟通风格的差异，最后由你确认 AI 搭子。配套 Skill 还能把 12 套中文沟通风格装进 Agent。给 AI 设置一个更懂你的星座。GitHub：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 ### 小红书
 
 标题：我把 AI 的“说话方式”做成了 12 套可安装协议
 
-正文：不是给人贴星座标签，也不是算命。这个开源小项目让你先匿名听同一道题的两种 AI 回答，选完才揭示差异；喜欢哪一种，还能把对应沟通协议装进 Agent。支持指定人格、按任务推荐、双人格比较。核心边界只有一句：**让 AI 换一种说法，不换事实。**
+正文：这个开源小项目让你先听同一道题的两种 AI 回答，选完再看沟通风格的差异；喜欢哪一种，还能把对应风格装进 Agent。支持指定风格、按任务推荐、双风格比较。**给 AI 设置一个更懂你的星座，让表达方式更适应你的个性与偏好。**
 
-体验：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/><br>
-源码：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
+GitHub：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 #AI开源 #AgentSkill #提示词工程 #AI工具
 
 ### B站
 
-标题：让 AI 换一种说法，不换事实｜12 套中文沟通协议开源了
+标题：给 AI 设置一个更懂你的星座｜12 套中文沟通风格开源了
 
 简介：这次做了两个配套开源项目：Persona Kit 用匿名同题 A/B 帮你找到更对味的表达；Communication Skill 把相同语义做成 12 套可安装、可审计的 Agent 沟通协议。视频演示指定人格、任务推荐和双人格比较。星座仅为协议标签，不用于占星、真人性格推断或科学测量。
 
-体验：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/><br>
 GitHub：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 ### V2EX
@@ -83,17 +81,17 @@ GitHub：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/
 
 ### X
 
-I open-sourced a Chinese AI communication-persona pair: an anonymous same-prompt A/B experience plus 12 installable, auditable Agent protocols. Tone and answer shape can change; facts, safety, uncertainty, risk, and the user task cannot. Zodiac names are labels—not astrology or personality science. Demo: <https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/> Code: <https://github.com/stableye/zodiac-persona-kit> + <https://github.com/stableye/zodiac-communication-skill>
+Give your AI a zodiac style that understands how you prefer to communicate. I open-sourced a Chinese same-prompt comparison plus 12 installable, auditable Agent protocols. Style can change; facts, safety, uncertainty, risk, and the user task cannot. GitHub: <https://github.com/stableye/zodiac-persona-kit> + <https://github.com/stableye/zodiac-communication-skill>
 
 ### Reddit
 
 **Title:** I open-sourced an anonymous A/B experience and 12 auditable Chinese communication protocols for AI agents
 
-**Body:** The project separates experience from runtime. Persona Kit lets people compare two reviewed answers to the same prompt before revealing their labels. Communication Skill installs the same semantics as 12 local, auditable protocols with explicit persona rendering, transparent task-based recommendation, and side-by-side comparison. The invariant is simple: presentation may change; facts, evidence, safety, uncertainty, risk level, and the user task may not. Zodiac names are mnemonic labels, not astrology, diagnosis, or scientifically validated personality measurement. Demo: <https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/> Repos: <https://github.com/stableye/zodiac-persona-kit> and <https://github.com/stableye/zodiac-communication-skill>
+**Body:** Persona Kit lets people compare two reviewed answers to the same prompt and choose a communication style that feels more natural. Communication Skill installs the same semantics as 12 local, auditable protocols with explicit style rendering, transparent task-based recommendation, and side-by-side comparison. Presentation may change; facts, evidence, safety, uncertainty, risk level, and the user task may not. Repos: <https://github.com/stableye/zodiac-persona-kit> and <https://github.com/stableye/zodiac-communication-skill>
 
 ## 统一 CTA
 
-主 CTA：**先在 Persona Kit 匿名盲选一次：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/>**
+主 CTA：**查看 AI星座搭子开源项目：<https://github.com/stableye/zodiac-persona-kit>**
 
 次 CTA：**把 12 套协议装进 Agent：`npx skills add stableye/zodiac-communication-skill@apply-zodiac-communication-style`**
 
@@ -105,6 +103,6 @@ I open-sourced a Chinese AI communication-persona pair: an anonymous same-prompt
 - 不说“已上架/已通过 OpenAI、ClawHub、Kilo 或任何市场审核”；当前只确认公开 GitHub 源码。
 - 不说“科学测出你是什么人格”“根据生日识别真人性格”“改善心理问题”或任何占星、诊断、疗效主张。
 - 不说“不会出错”“绝对安全”“完全保护隐私”；应使用仓库中已经验证的具体边界。
-- 不把公开体验站说成 Skill 执行环境，也不把本地流程动图说成公开站录屏。
+- 不再引用已停用的体验站；所有公开入口统一指向 GitHub 仓库。
 - 不把任务关键词推荐说成语义模型、个性化画像或长期记忆。
 - 不伪造用户评价、平台背书、使用量、转化率、Star、Fork、下载或收入数据。

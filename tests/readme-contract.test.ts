@@ -8,14 +8,15 @@ const launchKit = readFileSync(resolve(root, "docs", "LAUNCH_KIT.md"), "utf8");
 const gifPath = resolve(root, "docs", "assets", "persona-kit-flow.gif");
 
 describe("GitHub launch contract", () => {
-  it("keeps the frozen claim, primary CTA, repository bridge and honest demo boundary", () => {
-    expect(readme).toContain("让 AI 换一种说法，不换事实");
-    expect(readme).toContain("https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/");
+  it("keeps the current claim, GitHub entry, repository bridge and demo asset", () => {
+    expect(readme).toContain("给 AI 设置一个更懂你的星座");
+    expect(readme).toContain("https://github.com/stableye/zodiac-persona-kit");
     expect(readme).toContain("https://github.com/stableye/zodiac-communication-skill");
     expect(readme).toContain("docs/assets/persona-kit-flow.gif");
-    expect(readme).toContain("基于当前 `main` 的同版本本地可复现流程示意");
-    expect(readme).toContain("不是公开站录屏");
+    expect(readme).toContain("动图展示本仓库的实际使用流程");
     expect(readme).toContain("不是经过科学验证的人格测量");
+    expect(readme).not.toContain("chatgpt.site");
+    expect(launchKit).not.toContain("chatgpt.site");
   });
 
   it("ships one truthful shared launch kit", () => {

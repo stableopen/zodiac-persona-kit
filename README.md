@@ -1,22 +1,22 @@
 # AI星座搭子
 
-> **让 AI 换一种说法，不换事实。**
+> **给 AI 设置一个更懂你的星座。**
 
 [![CI](https://github.com/stableye/zodiac-persona-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/stableye/zodiac-persona-kit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-8f6cff.svg)](LICENSE)
 ![12 Personas](https://img.shields.io/badge/personas-12-ff6db2.svg)
 
-**[在线体验：匿名同题 A/B →](https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/)** · **[安装 12 套沟通 Skill →](https://github.com/stableye/zodiac-communication-skill#安装--installation)**
+**[查看 GitHub 开源项目 →](https://github.com/stableye/zodiac-persona-kit)** · **[安装 12 套沟通 Skill →](https://github.com/stableye/zodiac-communication-skill#安装--installation)**
 
 ![从匿名同题 A/B 到揭示差异、确认 AI 搭子的流程](docs/assets/persona-kit-flow.gif)
 
-> 动图是基于当前 `main` 的同版本本地可复现流程示意，不是公开站录屏；页面状态、审核预置 A/B 文案与确认路径均来自本仓库。公开体验可能受网络、地区或托管服务状态影响。
+> 动图展示本仓库的实际使用流程。
 
-AI星座搭子是一个中文 AI 沟通人格体验项目。V0.2 用“同题双声道”让用户直接比较两种表达方式，完成选择、揭示差异、确认人格，并继续聊天或邀请朋友参与同一场选择。星座只是易记的沟通协议标签，不用于运势、占星预测、真人性格推断或科学人格测量。
+AI星座搭子是一个中文 AI 沟通风格开源项目。用同一道题的两种回答，帮你选出更懂你的表达方式；确认喜欢的风格后，还可以继续聊天或邀请朋友一起选择。
 
 需要把相同协议装进 Agent？使用配套的 [zodiac-communication-skill](https://github.com/stableye/zodiac-communication-skill)。准备发布演示时，统一事实底稿、短视频脚本与各平台文案见 [Launch Kit](docs/LAUNCH_KIT.md)。
 
-当前状态：V0.2 已加入共享持久存储适配、Sites D1 schema/migration 和生产严格门禁；V0.1/V0.2 的既有体验路径保持不变。本项目的正式交付是 GitHub `main` 分支源码与下方本地运行路径，远程验证状态以仓库 Actions 为准。在线演示仅作可选预览，可能受网络、地区或托管服务状态影响，不承诺始终可达，也不作为源码功能验收依据。本地或自行部署在线聊天时，仍需配置兼容 OpenAI Chat Completions 的模型服务。
+当前状态：V0.2 已加入共享持久存储适配、Sites D1 schema/migration 和生产严格门禁；V0.1/V0.2 的既有体验路径保持不变。项目入口是 GitHub `main` 分支源码与下方本地运行方式，远程验证状态以仓库 Actions 为准。本地或自行部署在线聊天时，仍需配置兼容 OpenAI Chat Completions 的模型服务。
 
 ## 核心体验
 
@@ -124,7 +124,7 @@ docs/                产品口径、人格格式与部署说明
 
 ## English summary
 
-AI Zodiac Companion is an open-source Chinese AI communication-persona experience. V0.2 lets users compare two reviewed responses to the same prompt, choose a preferred style, confirm it locally, then chat or share an interactive A/B link. The repository includes 12 reusable persona JSON files. The supported deliverable is the source on GitHub `main` plus the local run path documented above; current validation status is recorded in GitHub Actions. Any hosted demo is an optional preview whose reachability may vary by network, region, or hosting-service status, and is not an availability commitment. Local or self-hosted online chat requires an OpenAI-compatible endpoint.
+AI Zodiac Companion is an open-source Chinese AI communication-style project. It helps users compare two reviewed responses to the same prompt, choose a preferred style, confirm it locally, then chat or share the same choice with friends. The repository includes 12 reusable persona JSON files. Start from the source on GitHub `main` and the local run path documented above; current validation status is recorded in GitHub Actions. Local or self-hosted online chat requires an OpenAI-compatible endpoint.
 
 ## License
 

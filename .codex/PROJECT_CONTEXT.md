@@ -41,7 +41,7 @@
 
 ## Deploy / Run Notes
 
-- 2026-08-03 用户将当前交付范围收敛为“GitHub `main` 源码正常 + README 本地运行路径”；在线 Sites 仅作可选预览，不承诺网络或地区可达，不再是当前验收门槛。第二会话分享和生产事件聚合读回转为后续验证项，不再阻断本次 GitHub 交付。
+- 2026-08-03 用户将公开入口收敛为 GitHub `main` 源码与 README 本地运行路径；已停用的 Sites 地址不再对外引用。第二会话分享和生产事件聚合读回转为后续验证项，不再阻断本次 GitHub 交付。
 - GitHub 提交 `0ade15d` 的 Node.js 22 Actions run `30784605335` 已通过；同一源码曾保存并部署为 Sites version 4、访问策略沿用 public，但该预览状态不替代 GitHub 源码与本地运行验收。
 - `.openai/hosting.json` 已声明逻辑 D1 绑定 `DB`，仓库含 schema、生成 migration 和 Worker 适配；浏览器本地状态仍不上传。
 - Sites version 3 的生产 `/`、`/explore`、真实 DeepSeek 聊天和事件写入已通过；同一访客额度从 version 2 的 3 延续到 version 3 的 2，证明共享 D1 在跨部署场景保持状态。公开后匿名真实聊天再次返回非空回复、`personaVersion=0.1.0` 与 `quota.remaining=4`。该证据不等于已有公开指标 API、看板或真实留存数据。
@@ -50,7 +50,7 @@
 - 提交 `aea5a1c` 的本地最终门禁已通过：typecheck、Vitest 40/40、lint、生产构建和 SSR 4/4；本地完整可用只剩真实模型非空回复证据。
 - 2026-08-02 提交 `3d03825` 完成本地 Worker 环境桥接；DeepSeek 云端 `deepseek-chat` 通过项目外进程配置接入，`POST /api/chat` 返回 200、`personaVersion=0.1.0`、非空双鱼人格回复和有效剩余额度。仓库、日志和团队档案均不保存密钥或私盐值。
 - 同轮首页 Hero 在不改文案、颜色、卡片、动画或流程的前提下收紧信息密度；1440×900 标题固定两行且主 CTA 首屏可见，390×844 标题三行、说明与主 CTA 首屏可见，两视口均无横向溢出、控制台 error 为 0。当前门禁为 typecheck、Vitest 42/42、lint、生产构建和 SSR 4/4。
-- 公开 MIT 仓库已迁移到 `https://github.com/stableye/zodiac-persona-kit`，默认分支为 `main`，完整 Git 历史已保留；GitHub About 已设置中文 description，homepage 指向公开体验站，并设置 `ai-persona`、`chinese-ai`、`cloudflare-workers`、`interactive-demo`、`nextjs`、`open-source`、`openai-compatible`、`zodiac` 八个 topics。StableYe 路径迁移提交 `9fc59f6` 的 Node.js 22 Actions run `30793663522` 已通过全部门禁；尚未创建版本标签。
+- 公开 MIT 仓库已迁移到 `https://github.com/stableye/zodiac-persona-kit`，默认分支为 `main`，完整 Git 历史已保留；GitHub About 的 homepage 统一指向仓库自身，并设置 `ai-persona`、`chinese-ai`、`cloudflare-workers`、`interactive-demo`、`nextjs`、`open-source`、`openai-compatible`、`zodiac` 八个 topics。StableYe 路径迁移提交 `9fc59f6` 的 Node.js 22 Actions run `30793663522` 已通过全部门禁；尚未创建版本标签。
 - 2026-08-02 全新本地 D1 首次额度读取曾因 `zodiac_kv` 尚未建表返回 `QUOTA_UNAVAILABLE`；提交 `5070ddd` 以失败测试固定空库路径，并在 KV 首次读写前完成幂等初始化。当时基线 HEAD `b5ac30f` 已通过 typecheck、全量 Vitest 13 文件 56/56、lint、生产构建与 SSR 4/4；`git diff --check` 亦通过。
 - 2026-08-03 首次公开 CI 暴露两项跨环境阻断：npm 10 clean install 缺少嵌套锁文件项，以及 Node 22 `node:sqlite` 不接受编号占位符 `?1`。提交 `3243e89` 补齐最小锁文件项，提交 `65f5aea` 改用 D1/SQLite 均支持的裸 `?`；同代 Node 22 本地门禁与远程 CI 均通过。
 - 提交 `765036a` 把 Next.js 从 `16.2.6` 更新到安全补丁 `16.2.12`，清除 Next.js 自身的直接高危公告；没有使用 `npm audit fix --force` 或超出上游兼容范围的 dependency override。
@@ -87,8 +87,8 @@
 
 ## GitHub Launch Assets (2026-08-03)
 
-- 冻结首发主张：让 AI 换一种说法，不换事实。
-- README 首屏以公开体验为主 CTA，以 `zodiac-communication-skill` 安装为次 CTA，并明确星座只是沟通协议标签。
-- `docs/assets/persona-kit-flow.gif` 是基于当前 `main` 的同版本本地可复现流程示意，不得表述为公开站录屏；公开站在当前录制环境会被 Cloudflare 拦截。
+- 当前主张：给 AI 设置一个更懂你的星座。
+- README 首屏以 GitHub 开源项目为主入口，以 `zodiac-communication-skill` 安装为次入口。
+- `docs/assets/persona-kit-flow.gif` 展示当前仓库的实际使用流程。
 - 两仓唯一发布素材底稿为本仓库 `docs/LAUNCH_KIT.md`；Skill 仓库只链接，不复制。
 - `tests/readme-contract.test.ts` 锁定主张、双向链接、动图诚实边界、非占星边界和唯一 launch kit。
