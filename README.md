@@ -2,11 +2,11 @@
 
 > **让 AI 换一种说法，不换事实。**
 
-[![CI](https://github.com/yewending/zodiac-persona-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/yewending/zodiac-persona-kit/actions/workflows/ci.yml)
+[![CI](https://github.com/stableye/zodiac-persona-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/stableye/zodiac-persona-kit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-8f6cff.svg)](LICENSE)
 ![12 Personas](https://img.shields.io/badge/personas-12-ff6db2.svg)
 
-**[在线体验：匿名同题 A/B →](https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/)** · **[安装 12 套沟通 Skill →](https://github.com/yewending/zodiac-communication-skill#安装--installation)**
+**[在线体验：匿名同题 A/B →](https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/)** · **[安装 12 套沟通 Skill →](https://github.com/stableye/zodiac-communication-skill#安装--installation)**
 
 ![从匿名同题 A/B 到揭示差异、确认 AI 搭子的流程](docs/assets/persona-kit-flow.gif)
 
@@ -14,7 +14,7 @@
 
 AI星座搭子是一个中文 AI 沟通人格体验项目。V0.2 用“同题双声道”让用户直接比较两种表达方式，完成选择、揭示差异、确认人格，并继续聊天或邀请朋友参与同一场选择。星座只是易记的沟通协议标签，不用于运势、占星预测、真人性格推断或科学人格测量。
 
-需要把相同协议装进 Agent？使用配套的 [zodiac-communication-skill](https://github.com/yewending/zodiac-communication-skill)。准备发布演示时，统一事实底稿、短视频脚本与各平台文案见 [Launch Kit](docs/LAUNCH_KIT.md)。
+需要把相同协议装进 Agent？使用配套的 [zodiac-communication-skill](https://github.com/stableye/zodiac-communication-skill)。准备发布演示时，统一事实底稿、短视频脚本与各平台文案见 [Launch Kit](docs/LAUNCH_KIT.md)。
 
 当前状态：V0.2 已加入共享持久存储适配、Sites D1 schema/migration 和生产严格门禁；V0.1/V0.2 的既有体验路径保持不变。本项目的正式交付是 GitHub `main` 分支源码与下方本地运行路径，远程验证状态以仓库 Actions 为准。在线演示仅作可选预览，可能受网络、地区或托管服务状态影响，不承诺始终可达，也不作为源码功能验收依据。本地或自行部署在线聊天时，仍需配置兼容 OpenAI Chat Completions 的模型服务。
 

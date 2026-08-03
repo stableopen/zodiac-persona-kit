@@ -5,8 +5,8 @@
 ## 统一事实底稿
 
 - 核心主张：**让 AI 换一种说法，不换事实。**
-- [AI星座搭子 / Persona Kit](https://github.com/yewending/zodiac-persona-kit) 是真实互动体验与 12 套人格语义源：匿名比较同一道题的两种审核预置回答，选择后揭示差异，再由用户主动确认 AI 搭子。
-- [十二星座沟通风格 / Communication Skill](https://github.com/yewending/zodiac-communication-skill) 是可安装、可审计的 12 套中文 Agent 沟通协议，支持指定人格、按任务透明推荐、双人格并排比较。
+- [AI星座搭子 / Persona Kit](https://github.com/stableye/zodiac-persona-kit) 是真实互动体验与 12 套人格语义源：匿名比较同一道题的两种审核预置回答，选择后揭示差异，再由用户主动确认 AI 搭子。
+- [十二星座沟通风格 / Communication Skill](https://github.com/stableye/zodiac-communication-skill) 是可安装、可审计的 12 套中文 Agent 沟通协议，支持指定人格、按任务透明推荐、双人格并排比较。
 - 两边只改变语气、推理组织、回答结构、鼓励和分歧方式；不改变事实、证据、不确定性、安全要求、风险等级或用户任务。
 - 星座只是方便记忆的协议标签，不是运势、占星预测、真人性格推断、心理诊断或科学人格测量。
 - Persona Kit 的核心 A/B 路径无需登录，也不会为比较额外调用两个模型；只有在线聊天需要自行配置兼容 OpenAI Chat Completions 的模型服务。
@@ -56,7 +56,7 @@
 正文：不是给人贴星座标签，也不是算命。这个开源小项目让你先匿名听同一道题的两种 AI 回答，选完才揭示差异；喜欢哪一种，还能把对应沟通协议装进 Agent。支持指定人格、按任务推荐、双人格比较。核心边界只有一句：**让 AI 换一种说法，不换事实。**
 
 体验：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/><br>
-源码：<https://github.com/yewending/zodiac-persona-kit> / <https://github.com/yewending/zodiac-communication-skill>
+源码：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 #AI开源 #AgentSkill #提示词工程 #AI工具
 
@@ -67,37 +67,37 @@
 简介：这次做了两个配套开源项目：Persona Kit 用匿名同题 A/B 帮你找到更对味的表达；Communication Skill 把相同语义做成 12 套可安装、可审计的 Agent 沟通协议。视频演示指定人格、任务推荐和双人格比较。星座仅为协议标签，不用于占星、真人性格推断或科学测量。
 
 体验：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/><br>
-GitHub：<https://github.com/yewending/zodiac-persona-kit> / <https://github.com/yewending/zodiac-communication-skill>
+GitHub：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 ### V2EX
 
 标题：[开源] 同题双声道 + 12 套可安装中文 Agent 沟通协议
 
-正文：做了两个 MIT 项目。Persona Kit 先隐藏身份，让用户比较同一道题的两条审核预置回答，选完再揭示差异；Communication Skill 用本地 Python CLI 提供指定人格、任务推荐和双人格比较。设计边界是只改表达，不改事实、证据、安全、不确定性和任务。星座仅是方便记忆的协议标签。欢迎从 README 的动图和本地运行路径开始看：<https://github.com/yewending/zodiac-persona-kit> / <https://github.com/yewending/zodiac-communication-skill>
+正文：做了两个 MIT 项目。Persona Kit 先隐藏身份，让用户比较同一道题的两条审核预置回答，选完再揭示差异；Communication Skill 用本地 Python CLI 提供指定人格、任务推荐和双人格比较。设计边界是只改表达，不改事实、证据、安全、不确定性和任务。星座仅是方便记忆的协议标签。欢迎从 README 的动图和本地运行路径开始看：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 ### 掘金
 
 标题：把 AI 沟通风格从 Prompt 文案做成可审计协议：12 人格、匿名 A/B 与本地 CLI
 
-正文：这个开源实验拆成两层：体验层用匿名同题 A/B 验证表达偏好；协议层用 JSON + 标准库 Python 固定事实、安全和不确定性边界，再支持 render、recommend、compare 三种调用。推荐是可解释的关键词匹配，不冒充语义模型；A/B 是审核预置内容，不额外调用双模型。代码与验收：<https://github.com/yewending/zodiac-persona-kit> / <https://github.com/yewending/zodiac-communication-skill>
+正文：这个开源实验拆成两层：体验层用匿名同题 A/B 验证表达偏好；协议层用 JSON + 标准库 Python 固定事实、安全和不确定性边界，再支持 render、recommend、compare 三种调用。推荐是可解释的关键词匹配，不冒充语义模型；A/B 是审核预置内容，不额外调用双模型。代码与验收：<https://github.com/stableye/zodiac-persona-kit> / <https://github.com/stableye/zodiac-communication-skill>
 
 ### X
 
-I open-sourced a Chinese AI communication-persona pair: an anonymous same-prompt A/B experience plus 12 installable, auditable Agent protocols. Tone and answer shape can change; facts, safety, uncertainty, risk, and the user task cannot. Zodiac names are labels—not astrology or personality science. Demo: <https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/> Code: <https://github.com/yewending/zodiac-persona-kit> + <https://github.com/yewending/zodiac-communication-skill>
+I open-sourced a Chinese AI communication-persona pair: an anonymous same-prompt A/B experience plus 12 installable, auditable Agent protocols. Tone and answer shape can change; facts, safety, uncertainty, risk, and the user task cannot. Zodiac names are labels—not astrology or personality science. Demo: <https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/> Code: <https://github.com/stableye/zodiac-persona-kit> + <https://github.com/stableye/zodiac-communication-skill>
 
 ### Reddit
 
 **Title:** I open-sourced an anonymous A/B experience and 12 auditable Chinese communication protocols for AI agents
 
-**Body:** The project separates experience from runtime. Persona Kit lets people compare two reviewed answers to the same prompt before revealing their labels. Communication Skill installs the same semantics as 12 local, auditable protocols with explicit persona rendering, transparent task-based recommendation, and side-by-side comparison. The invariant is simple: presentation may change; facts, evidence, safety, uncertainty, risk level, and the user task may not. Zodiac names are mnemonic labels, not astrology, diagnosis, or scientifically validated personality measurement. Demo: <https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/> Repos: <https://github.com/yewending/zodiac-persona-kit> and <https://github.com/yewending/zodiac-communication-skill>
+**Body:** The project separates experience from runtime. Persona Kit lets people compare two reviewed answers to the same prompt before revealing their labels. Communication Skill installs the same semantics as 12 local, auditable protocols with explicit persona rendering, transparent task-based recommendation, and side-by-side comparison. The invariant is simple: presentation may change; facts, evidence, safety, uncertainty, risk level, and the user task may not. Zodiac names are mnemonic labels, not astrology, diagnosis, or scientifically validated personality measurement. Demo: <https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/> Repos: <https://github.com/stableye/zodiac-persona-kit> and <https://github.com/stableye/zodiac-communication-skill>
 
 ## 统一 CTA
 
 主 CTA：**先在 Persona Kit 匿名盲选一次：<https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/>**
 
-次 CTA：**把 12 套协议装进 Agent：`npx skills add yewending/zodiac-communication-skill@apply-zodiac-communication-style`**
+次 CTA：**把 12 套协议装进 Agent：`npx skills add stableye/zodiac-communication-skill@apply-zodiac-communication-style`**
 
-源码 CTA：<https://github.com/yewending/zodiac-persona-kit> · <https://github.com/yewending/zodiac-communication-skill>
+源码 CTA：<https://github.com/stableye/zodiac-persona-kit> · <https://github.com/stableye/zodiac-communication-skill>
 
 ## 禁用说法
 

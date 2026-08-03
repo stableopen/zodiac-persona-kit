@@ -24,7 +24,7 @@
 ## 当前阶段
 
 - 2026-08-03 用户明确把当前交付目标收敛为 GitHub 源码与本地运行；Sites 仅是可选预览，不作可达性承诺，也不再是当前交付或验收门槛。
-- 当前 Git 分支与公开默认分支均为 `main`，`origin` 为 `https://github.com/yewending/zodiac-persona-kit.git`；最终交付提交以 GitHub `main` 与对应 Actions 为准，正式发布标签按后续明确需求处理。
+- 当前 Git 分支与公开默认分支均为 `main`，`origin` 为 `https://github.com/stableye/zodiac-persona-kit.git`；最终交付提交以 GitHub `main` 与对应 Actions 为准，正式发布标签按后续明确需求处理。
 - V0.2 冻结范围内的 12 人格、测试、直选、双声道、确认、本地续聊、分享机制、导出和匿名事件已实现；没有扩展账户、社区、付费或更多人格。
 - Sites version 4 曾以 `0ade15d` 部署并沿用 public 访问，但只作为不保证可达的可选预览。
 - 公开生产已验证 `/`、`/explore`、匿名 DeepSeek 非空聊天、`personaVersion=0.1.0`、有效额度和事件写入；D1 额度跨部署延续亦已通过。生产变量只核对键名与 secret 标志，未读取或记录值。

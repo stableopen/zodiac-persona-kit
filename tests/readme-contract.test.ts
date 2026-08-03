@@ -11,7 +11,7 @@ describe("GitHub launch contract", () => {
   it("keeps the frozen claim, primary CTA, repository bridge and honest demo boundary", () => {
     expect(readme).toContain("让 AI 换一种说法，不换事实");
     expect(readme).toContain("https://zodiac-persona-kit.clear-gnome-6249.chatgpt.site/");
-    expect(readme).toContain("https://github.com/yewending/zodiac-communication-skill");
+    expect(readme).toContain("https://github.com/stableye/zodiac-communication-skill");
     expect(readme).toContain("docs/assets/persona-kit-flow.gif");
     expect(readme).toContain("基于当前 `main` 的同版本本地可复现流程示意");
     expect(readme).toContain("不是公开站录屏");

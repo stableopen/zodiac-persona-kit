@@ -52,7 +52,7 @@
 - 2026-08-03 公开 CI run `30781401157` 在 npm 10 clean install 发现锁文件缺少 `@emnapi/core@1.10.0` 与 `@emnapi/runtime@1.10.0`；提交 `3243e89` 只补齐两个嵌套条目，npm 10 clean install 与完整本地门禁通过。
 - 2026-08-03 CI run `30781979375` 在 Node 22 `node:sqlite` 发现 `?1` 导致 `column index out of range`；Node 22.13 探针证实裸 `?` 正常，提交 `65f5aea` 完成最小兼容修复。run `30782330670` 随后通过安装、typecheck、Vitest 56/56、lint、build 与 SSR 4/4。
 - 提交 `765036a` 把 Next.js 从 `16.2.6` 更新到 `16.2.12`，清除 Next.js 自身的直接高危公告并保留 npm 10 所需嵌套锁文件项。Node 22 Actions run `30783329298` 全绿。
-- 公开仓库 `https://github.com/yewending/zodiac-persona-kit` 的默认分支为 `main`。从该 URL 全新克隆 `765036a` 后，README 安装与全部门禁通过；无密钥 `npm run dev` 在 `localhost:3101` 的 `/`、`/explore` 返回 200，验证后服务已关闭且克隆保持 clean。
+- 公开仓库 `https://github.com/stableye/zodiac-persona-kit` 的默认分支为 `main`。从该仓库的完整历史全新克隆 `765036a` 后，README 安装与全部门禁通过；无密钥 `npm run dev` 在 `localhost:3101` 的 `/`、`/explore` 返回 200，验证后服务已关闭且克隆保持 clean。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 
