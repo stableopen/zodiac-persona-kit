@@ -84,3 +84,11 @@
 - 服务端渲染、深链和绝对 OG/X URL：`tests/rendered-html.test.mjs`
 - 开源入口与格式：`README.md`、`docs/PERSONA_FORMAT.md`、`docs/DEPLOYMENT.md`
 - 社交图：`public/og.png`，源/目标 SHA-256 均为 `42FC24286C72628CE98FBFC9E8E0ED873C9A4E0047E19911BC8B42992FD68E07`
+
+## GitHub Launch Assets (2026-08-03)
+
+- 冻结首发主张：让 AI 换一种说法，不换事实。
+- README 首屏以公开体验为主 CTA，以 `zodiac-communication-skill` 安装为次 CTA，并明确星座只是沟通协议标签。
+- `docs/assets/persona-kit-flow.gif` 是基于当前 `main` 的同版本本地可复现流程示意，不得表述为公开站录屏；公开站在当前录制环境会被 Cloudflare 拦截。
+- 两仓唯一发布素材底稿为本仓库 `docs/LAUNCH_KIT.md`；Skill 仓库只链接，不复制。
+- `tests/readme-contract.test.ts` 锁定主张、双向链接、动图诚实边界、非占星边界和唯一 launch kit。
