@@ -66,6 +66,35 @@ describe("匿名事件安全白名单", () => {
     ]);
   });
 
+  it("模式事件只写入白名单人格和modeId且不接受正文", async () => {
+    const kv = new FakeKv();
+    const env: RuntimeEnv = { ZODIAC_KV: kv };
+    const selected = await handleEventRequest(
+      eventRequest({
+        event: "mode_selected",
+        personaId: "pisces",
+        modeId: "calm",
+      }),
+      env,
+      { now: () => Date.UTC(2026, 7, 1, 12) },
+    );
+    expect(selected.status).toBe(204);
+    expect([...kv.values.keys()]).toEqual([
+      "event:2026-08-01:mode_selected:pisces:-:-:calm",
+    ]);
+
+    const withContent = await handleEventRequest(
+      eventRequest({
+        event: "mode_starter_used",
+        personaId: "pisces",
+        modeId: "calm",
+        content: "不能记录的起手式正文",
+      }),
+      env,
+    );
+    expect(withContent.status).toBe(400);
+  });
+
   it("拒绝未知事件、正文键和非法安全维度", async () => {
     const valid = {
       event: "referred_choice",
@@ -80,6 +109,8 @@ describe("匿名事件安全白名单", () => {
       { ...valid, scenarioId: "private-question" },
       { ...valid, sourceId: "bad value" },
       { event: "referral_open", personaId: "virgo" },
+      { event: "mode_selected", personaId: "virgo", modeId: "custom" },
+      { event: "mode_selected", personaId: "virgo" },
     ];
 
     for (const body of invalidBodies) {

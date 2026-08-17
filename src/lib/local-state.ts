@@ -1,4 +1,5 @@
 import { getPersona } from "./personas";
+import { parseTaskModeId, type TaskModeId } from "./modes";
 import type { ZodiacId } from "./zodiac";
 
 export const LOCAL_COMPANION_KEY = "zodiac-persona-kit:local-companion:v1";
@@ -18,6 +19,7 @@ export interface LocalChatSession {
 export interface LocalCompanionState {
   version: 1;
   confirmedPersonaId?: ZodiacId;
+  modeId?: TaskModeId;
   session?: LocalChatSession;
 }
 
@@ -71,6 +73,11 @@ export function parseLocalCompanionState(
     if (input.confirmedPersonaId !== undefined) {
       state.confirmedPersonaId = requirePersonaId(input.confirmedPersonaId);
     }
+    if (input.modeId !== undefined) {
+      const modeId = parseTaskModeId(input.modeId);
+      if (!modeId) return null;
+      state.modeId = modeId;
+    }
     if (input.session !== undefined) {
       if (!isRecord(input.session)) return null;
       state.session = {
@@ -95,7 +102,25 @@ export function confirmLocalPersona(
   return {
     version: 1,
     confirmedPersonaId: personaId,
+    ...(current?.modeId ? { modeId: current.modeId } : {}),
     ...(matchingSession ? { session: matchingSession } : {}),
+  };
+}
+
+export function saveLocalMode(
+  current: LocalCompanionState | null,
+  modeId: TaskModeId | null,
+): LocalCompanionState {
+  if (modeId !== null && !parseTaskModeId(modeId)) {
+    throw new Error("本地任务模式无效");
+  }
+  return {
+    version: 1,
+    ...(current?.confirmedPersonaId
+      ? { confirmedPersonaId: current.confirmedPersonaId }
+      : {}),
+    ...(modeId ? { modeId } : {}),
+    ...(current?.session ? { session: current.session } : {}),
   };
 }
 
@@ -111,6 +136,7 @@ export function saveLocalSession(
     ...(current?.confirmedPersonaId
       ? { confirmedPersonaId: current.confirmedPersonaId }
       : {}),
+    ...(current?.modeId ? { modeId: current.modeId } : {}),
     session: {
       personaId,
       messages: normalizeMessages(messages),

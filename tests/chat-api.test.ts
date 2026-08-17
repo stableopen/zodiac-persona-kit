@@ -86,6 +86,16 @@ describe("聊天API", () => {
       env(),
     );
     expect(forgedSystem.status).toBe(400);
+
+    const invalidMode = await handleChatRequest(
+      request({
+        personaId: "aries",
+        modeId: "客户端自造规则",
+        messages: [{ role: "user", content: "开始" }],
+      }),
+      env(),
+    );
+    expect(invalidMode.status).toBe(400);
   });
 
   it("由服务端编译system提示词且只发送最近4轮", async () => {
@@ -119,6 +129,34 @@ describe("聊天API", () => {
     expect(sent[0].content).toContain("处女座");
     expect(sent[1].content).toBe("message-3");
     expect(sent.at(-1)?.content).toBe("last-message");
+  });
+
+  it("只按白名单modeId在服务端叠加任务结构且保留人格规则", async () => {
+    let upstreamBody: Record<string, unknown> | undefined;
+    const response = await handleChatRequest(
+      request({
+        personaId: "pisces",
+        modeId: "calm",
+        messages: [{ role: "user", content: "我有点乱" }],
+      }),
+      env(),
+      {
+        fetch: async (_input, init) => {
+          upstreamBody = JSON.parse(String(init?.body));
+          return okFetch();
+        },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    const sent = upstreamBody?.messages as Array<{
+      role: string;
+      content: string;
+    }>;
+    expect(sent[0].content).toContain("双鱼座");
+    expect(sent[0].content).toContain("# 当前任务模式");
+    expect(sent[0].content).toContain("区分已知事实与可能的担忧");
+    expect(sent[0].content).not.toContain("客户端自造");
   });
 
   it("执行访客和全站日限额", async () => {

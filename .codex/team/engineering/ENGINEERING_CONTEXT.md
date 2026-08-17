@@ -1,6 +1,6 @@
 # 技术负责人上下文
 
-更新日期：2026-08-03
+更新日期：2026-08-17
 
 ## 架构事实
 
@@ -10,12 +10,15 @@
 - 默契度归属：`matchForDuelChoice` 只在用户保留问卷主推荐时沿用分数；改选对照人格返回 `null`。
 - 分享卡：普通结果使用人格卡；双声道使用独立匿名 A/B Canvas 卡，只绘制题目、两条回答、二维码和娱乐声明。
 - 本地状态：`src/lib/local-state.ts` 保存确认人格和最近 9 条当前会话；不上传本地历史。
+- V0.3 模式：`src/lib/modes.ts` 只暴露三个模式的 ID/文案/起手式；`src/server/mode-instruction.ts` 负责服务端白名单与结构指令。`compileSystemPrompt` 在人格提示词后可选叠加经服务端解析的模式指令。
+- 本地状态沿用 `version: 1` 并新增可选 `modeId`，旧数据继续可读；模式切换与起手式在无模型环境仍可用。
 - 聊天：`src/server/chat.ts` 调用 OpenAI 兼容接口，只接受 user/assistant，最多发送最近 4 轮，默认最多 300 tokens。
 - 运行时桥接：`worker/index.ts` 优先沿用 `ZODIAC_KV`，否则由 `worker/runtime-env.ts` 把 Sites `DB` 包装为 `KeyValueStore`；`bridgeRuntimeEnv` 只把字符串白名单和最终 KV 写入应用全局，不扩散 DB/ASSETS/IMAGES 等平台对象。
 - Sites 持久化：`db/schema.ts` 定义 `zodiac_kv(key,value,expires_at,updated_at)` 与 `expires_at` 索引；`drizzle/0000_square_vanisher.sql`、`0001_pink_captain_midlands.sql` 由 Drizzle Kit 生成并随构建打包。业务模块不直接依赖 D1；D1 KV 首次读写前用两条幂等单语句建立最小表/索引，并用绑定级 Promise 缓存避免同一 isolate 重复初始化，失败会清缓存后允许重试。Drizzle migration 仍是权威结构历史。
 - D1/SQLite SQL 参数统一使用裸 `?` 占位符；该形式同时兼容 Cloudflare D1 与 Node.js 22 `node:sqlite`。Node 22 对 `?1` 编号占位符的 positional `run(...bindings)` 会报 `ERR_SQLITE_ERROR`。
 - 本地开发配置：`vite.config.ts` 仅在 `command === "serve"` 时传入已有配置；普通字段进入 Wrangler `vars`，`LLM_API_KEY` 与 `RATE_LIMIT_SALT` 只以 `secrets.required` 名称声明并由 Wrangler 从父进程读取，build 不嵌入秘密。
 - 事件：`src/server/events.ts` 使用事件与安全元数据白名单；拒绝正文和额外字段。
+- V0.3 事件增加 `mode_selector_view/mode_selected/mode_starter_used/mode_chat_success`；只允许 `personaId/modeId` 与既有安全维度，计数键仅在存在合法 `modeId` 时追加模式段。
 - 留存：`src/server/retention.ts` 使用 `RATE_LIMIT_SALT + x-zodiac-device` 的 SHA-256 匿名关联，不含 IP；设备状态 TTL 10 天，cohort TTL 35 天。
 - 访客限额：`src/server/quota.ts` 对 IP 和设备分别做带私盐、域分隔的 SHA-256 并分别计数，任一达到上限即拒绝；缺私盐或无有效身份时在模型调用前安全失败。
 - OG origin：Worker 对 GET/HEAD 从真实 `Request.url.origin` 覆盖内部头；Layout 只接受该内部头的纯 `http/https` origin，不读取公开 forwarded/host 头。
@@ -55,6 +58,7 @@
 - 公开仓库 `https://github.com/stableye/zodiac-persona-kit` 的默认分支为 `main`。从该仓库的完整历史全新克隆 `765036a` 后，README 安装与全部门禁通过；无密钥 `npm run dev` 在 `localhost:3101` 的 `/`、`/explore` 返回 200，验证后服务已关闭且克隆保持 clean。
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
+- 2026-08-17 V0.3 最终门禁：typecheck、Vitest 15 文件 65/65、lint、production build、SSR 4/4、`git diff --check` 全绿。浏览器验证三模式与直接聊天切换、起手式只填输入框、刷新恢复人格/模式、无模型清晰降级；390×844 无横向溢出、输入区首屏可见、模式相关触控目标 44px、console error=0。
 
 ## 已知限制
 
@@ -70,6 +74,7 @@
 - GitHub remote、公开仓库、远程 Node.js 22 CI 与全新克隆复现已完成；正式标签按要求未创建。
 - `npm audit --omit=dev` 在 `765036a` 上仍为 high=3、critical=0：Next.js 固定 `postcss@8.4.31`，并在兼容范围内使用 `sharp@0.34.5`；当前无安全 non-major 自动修复。项目不接收用户 CSS，Worker 图像转换使用平台 `IMAGES`，但仍需跟踪上游版本，禁止未经验证的强制 override。
 - 当前没有仓库内 `.env` 模型配置；本地 DeepSeek 仅由 dev 服务进程持有，重启时若未再次注入会安全降级为 503。仅 `.env.example` 被跟踪，`.env*`、`.wrangler/`、本地日志和临时输出均保持忽略。
+- V0.3 尚未部署，也没有真实模式采用率、完成率、复用或付费数据；新增匿名事件只提供未来验证能力，不能表述为商业结论。
 
 ## 下一步
 

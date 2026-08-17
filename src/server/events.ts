@@ -4,6 +4,7 @@ import {
   type RuntimeEnv,
 } from "./runtime";
 import { getPersona } from "../lib/personas";
+import { parseTaskModeId, type TaskModeId } from "../lib/modes";
 import { isDuelScenarioId, isSafeShareSourceId } from "../lib/duel";
 import {
   recordPersonaConfirmation,
@@ -21,6 +22,10 @@ export const ANONYMOUS_EVENTS = [
   "share_generated",
   "referral_open",
   "referred_choice",
+  "mode_selector_view",
+  "mode_selected",
+  "mode_starter_used",
+  "mode_chat_success",
 ] as const;
 
 type AnonymousEvent = (typeof ANONYMOUS_EVENTS)[number];
@@ -34,6 +39,7 @@ interface SafeEventPayload {
   personaId?: string;
   scenarioId?: string;
   sourceId?: string;
+  modeId?: TaskModeId;
 }
 
 const ALLOWED_KEYS = new Set([
@@ -41,6 +47,7 @@ const ALLOWED_KEYS = new Set([
   "personaId",
   "scenarioId",
   "sourceId",
+  "modeId",
 ]);
 
 const REQUIRED_FIELDS: Partial<
@@ -52,6 +59,10 @@ const REQUIRED_FIELDS: Partial<
   share_generated: ["personaId", "scenarioId", "sourceId"],
   referral_open: ["personaId", "scenarioId", "sourceId"],
   referred_choice: ["personaId", "scenarioId", "sourceId"],
+  mode_selector_view: ["personaId"],
+  mode_selected: ["personaId", "modeId"],
+  mode_starter_used: ["personaId", "modeId"],
+  mode_chat_success: ["personaId", "modeId"],
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -76,7 +87,8 @@ function parseEventPayload(input: unknown): SafeEventPayload | null {
         !isDuelScenarioId(input.scenarioId))) ||
     (input.sourceId !== undefined &&
       (typeof input.sourceId !== "string" ||
-        !isSafeShareSourceId(input.sourceId)))
+        !isSafeShareSourceId(input.sourceId))) ||
+    (input.modeId !== undefined && !parseTaskModeId(input.modeId))
   ) {
     return null;
   }
@@ -90,6 +102,9 @@ function parseEventPayload(input: unknown): SafeEventPayload | null {
       ? { scenarioId: input.scenarioId }
       : {}),
     ...(typeof input.sourceId === "string" ? { sourceId: input.sourceId } : {}),
+    ...(parseTaskModeId(input.modeId)
+      ? { modeId: parseTaskModeId(input.modeId)! }
+      : {}),
   };
   if (REQUIRED_FIELDS[payload.event]?.some((field) => !payload[field])) {
     return null;
@@ -141,6 +156,7 @@ export async function handleEventRequest(
           personaId: body.personaId,
           scenarioId: body.scenarioId,
           sourceId: body.sourceId,
+          modeId: body.modeId,
         },
       );
     } catch (error) {

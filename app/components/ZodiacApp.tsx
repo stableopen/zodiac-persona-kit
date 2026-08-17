@@ -29,10 +29,16 @@ import {
   LOCAL_COMPANION_KEY,
   confirmLocalPersona,
   parseLocalCompanionState,
+  saveLocalMode,
   saveLocalSession,
   type LocalChatMessage,
   type LocalCompanionState,
 } from "@/src/lib/local-state";
+import {
+  TASK_MODES,
+  getTaskMode,
+  type TaskModeId,
+} from "@/src/lib/modes";
 import { PERSONAS, getPersona } from "@/src/lib/personas";
 import { compileSystemPrompt } from "@/src/lib/prompt";
 import { QUIZ_QUESTIONS, recommendPersonas } from "@/src/lib/quiz";
@@ -66,6 +72,42 @@ const QUICK_PROMPTS = [
   "给这个普通点子加点新意",
 ];
 
+function ModeSelector({
+  persona,
+  activeModeId,
+  onSelect,
+}: {
+  persona: ZodiacPersona;
+  activeModeId: TaskModeId | null;
+  onSelect: (modeId: TaskModeId) => void;
+}) {
+  useEffect(() => {
+    trackAnonymousEvent("mode_selector_view", { personaId: persona.id });
+  }, [persona.id]);
+
+  return (
+    <section className="mode-selector" aria-label="选择这次的任务模式">
+      <div className="mode-selector-copy">
+        <small>这次想让{persona.nameZh}怎么帮？</small>
+        <strong>人格决定怎么说，模式决定这次怎么做。</strong>
+      </div>
+      <div className="mode-options">
+        {TASK_MODES.map((mode) => (
+          <button
+            key={mode.id}
+            className={activeModeId === mode.id ? "is-active" : ""}
+            onClick={() => onSelect(mode.id)}
+            aria-pressed={activeModeId === mode.id}
+          >
+            <span aria-hidden="true">{mode.icon}</span>
+            <span><strong>{mode.name}</strong><small>{mode.tagline}</small></span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function personaStyle(persona: ZodiacPersona): CSSProperties {
   return {
     "--persona-primary": persona.visual.primary,
@@ -92,7 +134,7 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
       <Link className="brand" href="/" aria-label="AI星座搭子首页">
         <span className="brand-mark" aria-hidden="true">✦</span>
         <span>AI星座搭子</span>
-        <span className="brand-version">v0.2</span>
+        <span className="brand-version">v0.3</span>
       </Link>
       <nav className="site-nav" aria-label="主导航">
         <Link href="/explore">12人格</Link>
@@ -195,6 +237,7 @@ export function ZodiacApp({
   );
   const [isReferralRound, setIsReferralRound] = useState(Boolean(sharedDuel));
   const [localState, setLocalState] = useState<LocalCompanionState | null>(null);
+  const [activeModeId, setActiveModeId] = useState<TaskModeId | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatError, setChatError] = useState("");
@@ -233,10 +276,16 @@ export function ZodiacApp({
     );
   };
 
+  const persistMode = (modeId: TaskModeId | null) => {
+    setActiveModeId(modeId);
+    persistLocalState(saveLocalMode(localStateRef.current, modeId));
+  };
+
   const clearLocalState = () => {
     window.localStorage.removeItem(LOCAL_COMPANION_KEY);
     localStateRef.current = null;
     setLocalState(null);
+    setActiveModeId(null);
     showToast("已清除这台设备上的搭子和会话");
   };
 
@@ -247,6 +296,7 @@ export function ZodiacApp({
       );
       localStateRef.current = restored;
       setLocalState(restored);
+      setActiveModeId(restored?.modeId ?? null);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -305,6 +355,7 @@ export function ZodiacApp({
   const confirmedPersona = localState?.confirmedPersonaId
     ? getPersona(localState.confirmedPersonaId)
     : undefined;
+  const activeMode = activeModeId ? getTaskMode(activeModeId) : null;
 
   const goHome = () => {
     setView("home");
@@ -380,7 +431,11 @@ export function ZodiacApp({
     setAnswers((current) => current.slice(0, -1));
   };
 
-  const startChat = (persona = selected) => {
+  const startChat = (
+    persona = selected,
+    modeId: TaskModeId | null = null,
+    trackSelection = false,
+  ) => {
     const storedSession = localStateRef.current?.session;
     const initialMessages =
       storedSession?.personaId === persona.id
@@ -392,6 +447,13 @@ export function ZodiacApp({
             },
           ];
     setSelected(persona);
+    persistMode(modeId);
+    if (trackSelection && modeId) {
+      trackAnonymousEvent("mode_selected", {
+        personaId: persona.id,
+        modeId,
+      });
+    }
     setChatMessages(initialMessages);
     setChatError("");
     setFailedMessages(null);
@@ -401,10 +463,31 @@ export function ZodiacApp({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const selectChatMode = (modeId: TaskModeId | null) => {
+    if (isSending || activeModeId === modeId) return;
+    persistMode(modeId);
+    if (modeId) {
+      trackAnonymousEvent("mode_selected", {
+        personaId: selected.id,
+        modeId,
+      });
+    }
+  };
+
+  const fillModeStarter = (starter: string) => {
+    if (!activeModeId) return;
+    setChatInput(starter);
+    trackAnonymousEvent("mode_starter_used", {
+      personaId: selected.id,
+      modeId: activeModeId,
+    });
+  };
+
   const requestChat = async (nextMessages: ChatMessage[]) => {
     setChatError("");
     setIsSending(true);
     const confirmedPersonaId = localStateRef.current?.confirmedPersonaId;
+    const requestModeId = activeModeId;
 
     try {
       const response = await fetch("/api/chat", {
@@ -416,7 +499,11 @@ export function ZodiacApp({
             ? { "x-zodiac-confirmed-persona": confirmedPersonaId }
             : {}),
         },
-        body: JSON.stringify({ personaId: selected.id, messages: nextMessages }),
+        body: JSON.stringify({
+          personaId: selected.id,
+          messages: nextMessages,
+          ...(requestModeId ? { modeId: requestModeId } : {}),
+        }),
       });
       const result = (await response.json()) as {
         reply?: string;
@@ -437,6 +524,12 @@ export function ZodiacApp({
       if (!firstChatTracked.current) {
         firstChatTracked.current = true;
         trackAnonymousEvent("first_chat");
+      }
+      if (requestModeId) {
+        trackAnonymousEvent("mode_chat_success", {
+          personaId: selected.id,
+          modeId: requestModeId,
+        });
       }
     } catch (error) {
       setFailedMessages(nextMessages);
@@ -735,8 +828,13 @@ export function ZodiacApp({
               ) : (
                 <div className="duel-actions duel-actions--confirmed">
                   <div className="duel-confirmed-note">✓ 只保存在当前浏览器，可随时清除或覆盖</div>
+                  <ModeSelector
+                    persona={chosenPersona}
+                    activeModeId={activeModeId}
+                    onSelect={(modeId) => startChat(chosenPersona, modeId, true)}
+                  />
                   <button className="primary-button" onClick={() => startChat(chosenPersona)}>
-                    和{chosenPersona.nameZh}继续聊 <span>→</span>
+                    直接和{chosenPersona.nameZh}聊天 <span>→</span>
                   </button>
                   <button className="secondary-button" onClick={() => setView("result")}>
                     查看完整人格结果
@@ -813,6 +911,13 @@ export function ZodiacApp({
                 </button>
                 <button className="icon-button" onClick={() => downloadJson()} aria-label="下载人格JSON">↓ JSON</button>
               </div>
+              {localState?.confirmedPersonaId === selected.id && (
+                <ModeSelector
+                  persona={selected}
+                  activeModeId={activeModeId}
+                  onSelect={(modeId) => startChat(selected, modeId, true)}
+                />
+              )}
             </div>
           </div>
 
@@ -869,9 +974,33 @@ export function ZodiacApp({
               <button className="mobile-chat-back" onClick={() => setView("result")}>
                 ← 返回结果
               </button>
-              <div><span className="online-dot" /> AI搭子在线</div>
+              <div>
+                <span className="online-dot" />
+                {activeMode ? `${activeMode.icon} ${activeMode.name}模式` : "直接聊天"}
+              </div>
               {quotaRemaining !== null && <span>今天还可聊 {quotaRemaining} 条</span>}
             </header>
+            <div className="chat-mode-switch" aria-label="切换任务模式">
+              <button
+                className={!activeModeId ? "is-active" : ""}
+                onClick={() => selectChatMode(null)}
+                disabled={isSending}
+                aria-pressed={!activeModeId}
+              >
+                直接聊
+              </button>
+              {TASK_MODES.map((mode) => (
+                <button
+                  key={mode.id}
+                  className={activeModeId === mode.id ? "is-active" : ""}
+                  onClick={() => selectChatMode(mode.id)}
+                  disabled={isSending}
+                  aria-pressed={activeModeId === mode.id}
+                >
+                  <span aria-hidden="true">{mode.icon}</span> {mode.name}
+                </button>
+              ))}
+            </div>
             <div className="messages" aria-live="polite">
               {chatMessages.map((message, index) => (
                 <div className={`message message--${message.role}`} key={`${message.role}-${index}`}>
@@ -891,11 +1020,28 @@ export function ZodiacApp({
               <div ref={chatEndRef} />
             </div>
             {chatMessages.length <= 1 && (
-              <div className="quick-prompts">
-                {QUICK_PROMPTS.map((prompt) => (
-                  <button key={prompt} onClick={() => void sendChat(prompt)}>{prompt}</button>
-                ))}
-              </div>
+              activeMode ? (
+                <div className="mode-empty-state">
+                  <div>
+                    <strong>{activeMode.name}模式 · {activeMode.tagline}</strong>
+                    <span>{activeMode.description}</span>
+                  </div>
+                  <div className="mode-starters">
+                    {activeMode.starters.map((starter) => (
+                      <button key={starter} onClick={() => fillModeStarter(starter)}>
+                        {starter}
+                      </button>
+                    ))}
+                  </div>
+                  <small>点一下只会填入输入框，你可以改好再发送。</small>
+                </div>
+              ) : (
+                <div className="quick-prompts">
+                  {QUICK_PROMPTS.map((prompt) => (
+                    <button key={prompt} onClick={() => void sendChat(prompt)}>{prompt}</button>
+                  ))}
+                </div>
+              )
             )}
             {chatError && (
               <div className="chat-error" role="alert">
@@ -1002,15 +1148,23 @@ export function ZodiacApp({
             <small>这台设备上的 AI 搭子</small>
             <strong>{confirmedPersona.nameZh} · {confirmedPersona.tagline}</strong>
           </div>
-          <button className="primary-button" onClick={() => startChat(confirmedPersona)}>
-            继续聊天 <span>→</span>
+          <button
+            className="primary-button"
+            onClick={() => startChat(confirmedPersona, activeModeId)}
+          >
+            {activeMode ? `继续${activeMode.name}模式` : "继续聊天"} <span>→</span>
           </button>
           <button className="text-button" onClick={clearLocalState}>清除本地记录</button>
+          <ModeSelector
+            persona={confirmedPersona}
+            activeModeId={activeModeId}
+            onSelect={(modeId) => startChat(confirmedPersona, modeId, true)}
+          />
         </section>
       )}
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow"><span>V0.2</span> 先听表达，再看星座身份</p>
+          <p className="eyebrow"><span>V0.3</span> 同一人格，三种任务模式</p>
           <h1>
             <span className="hero-title-line">你的AI，</span>
             <span className="hero-title-line">

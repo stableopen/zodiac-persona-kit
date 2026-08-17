@@ -4,7 +4,8 @@
 
 - AI星座搭子是中文 AI 沟通人格体验站；V0.1 的测试、结果、聊天、分享、Prompt/JSON 和 `/explore` 必须保持可用。
 - V0.2（2026-08-01）唯一核心体验是“同题双声道”：先隐藏身份比较两条审核预置回复，再揭示差异并由用户主动确认搭子。
-- 应用包版本为 `0.2.0`；12 个人格 JSON 自身版本继续保持 `0.1.0`，二者独立演进。
+- V0.3（2026-08-17）为已确认人格增加“推进、安心、灵感”三种任务模式，同时保留直接聊天和全部 V0.1/V0.2 路径。
+- 应用包版本为 `0.3.0`；12 个人格 JSON 自身版本继续保持 `0.1.0`，二者独立演进。
 
 ## Commands
 
@@ -19,6 +20,7 @@
 
 - `src/lib/duel.ts`：审核预置情境/回复、确定性对照人格、安全分享深链构建与解析。
 - `src/lib/local-state.ts`：版本化本地确认人格与最近九条当前会话的校验、覆盖和裁剪；不直接访问浏览器 API。
+- `src/lib/modes.ts`：公开三种模式的产品文案、图标和各三个起手式；`src/server/mode-instruction.ts` 单独维护服务端结构指令和严格 ID 白名单。
 - `app/components/ZodiacApp.tsx`：页面状态、localStorage 副作用、聊天重试与分享交互；问卷主推荐被对照人格覆盖时会清除原推荐默契度。
 - `src/client/share-card.ts`：结果页人格卡与双声道匿名 A/B 邀请卡是两条独立 Canvas 生成路径。
 - `app/layout.tsx`：动态 metadata 只读取 Worker 根据实际 Request URL 覆写的内部 origin 头，为 Open Graph/X 生成绝对 `/og.png` URL。
@@ -35,6 +37,7 @@
 - 不增加双模型调用；双声道只使用人工审核的公开预置内容。
 - 分享 URL 仅允许 `scenario/left/right/pick/ref`；双声道卡片只绘制题目和匿名 A/B 回答，不绘制人格、选择、问卷答案或聊天正文。
 - 确认人格和最近会话只保存在当前浏览器；确认另一人格会覆盖旧确认并清除不匹配会话。
+- 模式只约束本次任务结构，不改变人格表达；`modeId` 是可选服务端白名单值，客户端不能发送结构指令。最近模式与人格、会话一起仅保存在当前浏览器。
 - 不做关系匹配、付费、账户、云端历史、社区、更多人格或重型 Agent 运行时。
 - 聊天限额要求非空私密 `RATE_LIMIT_SALT`，分别哈希并限制平台 IP 与匿名设备标识；缺盐或两种身份都缺失时在模型调用前返回 503。留存关联仍只使用盐与设备标识，不包含 IP；本地默认可在缺 KV 时用内存限额继续，但 Public Beta 必须设置 `REQUIRE_PERSISTENT_STORE=true` 禁止该降级。
 - 社交预览固定使用已检查的 `public/og.png`；Worker 从实际 Request URL 无条件覆写内部 `x-zodiac-request-origin`，metadata 只接受该内部头中的纯 http/https origin，不信任 forwarded/host 输入，也不硬编码生产域名。
@@ -55,6 +58,7 @@
 - 2026-08-03 首次公开 CI 暴露两项跨环境阻断：npm 10 clean install 缺少嵌套锁文件项，以及 Node 22 `node:sqlite` 不接受编号占位符 `?1`。提交 `3243e89` 补齐最小锁文件项，提交 `65f5aea` 改用 D1/SQLite 均支持的裸 `?`；同代 Node 22 本地门禁与远程 CI 均通过。
 - 提交 `765036a` 把 Next.js 从 `16.2.6` 更新到安全补丁 `16.2.12`，清除 Next.js 自身的直接高危公告；没有使用 `npm audit fix --force` 或超出上游兼容范围的 dependency override。
 - 从公开 GitHub URL 全新克隆 `765036a` 到空目录后，按 README 完成 `npm ci`、typecheck、Vitest 56/56、lint、build 和 SSR 4/4；无密钥启动入口后 `/` 与 `/explore` 均返回 200，验证目录保持 clean。
+- 2026-08-17 V0.3 三模式本地验收：typecheck、Vitest 15 文件 65/65、lint、production build、SSR 4/4 与 `git diff --check` 全部通过。浏览器实走确认人格、三模式与直接聊天切换、起手式只填框、刷新恢复人格与模式、无模型 503 降级；390×844 无横向溢出，输入区首屏可见，模式按钮与起手式均为 44px，控制台 error=0。未新增部署。
 
 ## Known Pitfalls
 
@@ -63,6 +67,7 @@
 - 本地 DeepSeek 配置只存在于当前 dev 服务进程；服务重启后必须再次从项目外注入，不得把值写入仓库或 Context。缺配置时接口按既有 503 降级。
 - 生产代理必须清洗并可信设置 `cf-connecting-ip` / `x-forwarded-for`；直接信任客户端自带转发头会削弱 IP 限额。
 - 市场、留存和商业判断仍是假设；事件已具备安全区分，但尚无真实用户数据。
+- V0.3 新事件仅允许 `personaId`、`modeId` 和既有安全维度；`mode_selector_view/mode_selected/mode_starter_used/mode_chat_success` 不得记录聊天正文。
 - Sites、第二会话分享和生产聚合读回可能继续作为后续运营验证，但不得重新表述为当前 GitHub 交付阻断，除非用户再次扩大验收范围。
 - 当前 KV 接口只有 `get/put`，cohort 聚合不是原子计数；适合 V0.2 小流量验证，正式放量前需换成原子计数或事务存储。
 - D1 每次写入都会按索引清理过期行；停流时物理清理要等后续请求触发，且并行额度写入会重复清理。该方案只适用于小流量 Public Beta，不作高并发或定时删除承诺。
@@ -77,6 +82,7 @@
 - 双声道/深链/推荐默契度归属：`tests/duel.test.ts`
 - 双声道匿名邀请卡：`tests/share-card.test.ts`
 - 本地状态：`tests/local-state.test.ts`
+- 模式定义与服务端白名单：`tests/modes.test.ts`、`tests/chat-api.test.ts`
 - 事件白名单：`tests/events.test.ts`
 - 留存口径、隐私与聊天成功接线：`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`
 - Worker 环境白名单与本地开发秘密边界：`tests/runtime.test.ts`

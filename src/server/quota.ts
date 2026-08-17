@@ -158,6 +158,7 @@ export async function incrementAnonymousEvent(
     personaId?: string;
     scenarioId?: string;
     sourceId?: string;
+    modeId?: string;
   } = {},
 ): Promise<void> {
   const store = getCounterStore(env, () => now);
@@ -168,6 +169,7 @@ export async function incrementAnonymousEvent(
     dimensions.personaId ?? "-",
     dimensions.scenarioId ?? "-",
     dimensions.sourceId ?? "-",
+    ...(dimensions.modeId ? [dimensions.modeId] : []),
   ].join(":");
   const current = await store.get(key);
   await store.set(key, current + 1, ANONYMOUS_EVENT_TTL_SECONDS);

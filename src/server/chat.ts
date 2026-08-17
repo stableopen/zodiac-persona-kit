@@ -1,5 +1,6 @@
 import { getPersona } from "../lib/personas";
 import { compileSystemPrompt } from "../lib/prompt";
+import type { TaskModeId } from "../lib/modes";
 import {
   consumeQuota,
   QuotaConfigurationError,
@@ -7,6 +8,7 @@ import {
   QuotaIdentityError,
 } from "./quota";
 import { recordSuccessfulChatReply } from "./retention";
+import { resolveTaskMode } from "./mode-instruction";
 import {
   parsePositiveInt,
   PersistentStoreConfigurationError,
@@ -21,6 +23,7 @@ export interface ChatMessage {
 interface ChatRequestBody {
   personaId: string;
   messages: ChatMessage[];
+  modeId?: TaskModeId;
 }
 
 interface FetchLike {
@@ -57,6 +60,10 @@ function parseBody(input: unknown): ChatRequestBody {
   if (typeof body.personaId !== "string" || !getPersona(body.personaId)) {
     throw new RequestValidationError("请选择有效的星座人格");
   }
+  const mode = resolveTaskMode(body.modeId);
+  if (body.modeId !== undefined && !mode) {
+    throw new RequestValidationError("请选择有效的任务模式");
+  }
   if (
     !Array.isArray(body.messages) ||
     body.messages.length === 0 ||
@@ -91,7 +98,11 @@ function parseBody(input: unknown): ChatRequestBody {
     throw new RequestValidationError("最后一条消息必须来自用户");
   }
 
-  return { personaId: body.personaId, messages };
+  return {
+    personaId: body.personaId,
+    messages,
+    ...(mode ? { modeId: mode.id } : {}),
+  };
 }
 
 function chatCompletionEndpoint(baseUrl: string): string {
@@ -143,6 +154,7 @@ export async function handleChatRequest(
   }
 
   const persona = getPersona(body.personaId)!;
+  const mode = resolveTaskMode(body.modeId);
   if (!env.LLM_BASE_URL || !env.LLM_API_KEY || !env.LLM_MODEL) {
     return jsonResponse(
       upstreamErrorBody("MODEL_NOT_CONFIGURED", requestId),
@@ -225,7 +237,10 @@ export async function handleChatRequest(
       body: JSON.stringify({
         model: env.LLM_MODEL,
         messages: [
-          { role: "system", content: compileSystemPrompt(persona) },
+          {
+            role: "system",
+            content: compileSystemPrompt(persona, mode?.instruction),
+          },
           ...recentMessages,
         ],
         max_tokens: parsePositiveInt(env.MAX_OUTPUT_TOKENS, 300, 2000),

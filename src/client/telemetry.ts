@@ -8,12 +8,17 @@ export type AnonymousEvent =
   | "persona_confirmed"
   | "share_generated"
   | "referral_open"
-  | "referred_choice";
+  | "referred_choice"
+  | "mode_selector_view"
+  | "mode_selected"
+  | "mode_starter_used"
+  | "mode_chat_success";
 
 export interface AnonymousEventMetadata {
   personaId?: string;
   scenarioId?: string;
   sourceId?: string;
+  modeId?: string;
 }
 
 const DEVICE_KEY = "zodiac-persona-kit:anonymous-device";

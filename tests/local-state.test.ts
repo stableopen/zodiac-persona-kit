@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   confirmLocalPersona,
   parseLocalCompanionState,
+  saveLocalMode,
   saveLocalSession,
   type LocalCompanionState,
 } from "../src/lib/local-state";
@@ -9,6 +10,7 @@ import {
 const virgoSession: LocalCompanionState = {
   version: 1,
   confirmedPersonaId: "virgo",
+  modeId: "action",
   session: {
     personaId: "virgo",
     updatedAt: 1_750_000_000_000,
@@ -49,7 +51,23 @@ describe("浏览器本地搭子状态", () => {
     expect(confirmLocalPersona(virgoSession, "pisces")).toEqual({
       version: 1,
       confirmedPersonaId: "pisces",
+      modeId: "action",
     });
+  });
+
+  it("最近模式随人格和会话保存在浏览器且可切回直接聊天", () => {
+    expect(saveLocalMode(virgoSession, "calm")).toEqual({
+      ...virgoSession,
+      modeId: "calm",
+    });
+    const direct = saveLocalMode(virgoSession, null);
+    expect(direct.modeId).toBeUndefined();
+    expect(direct.session).toEqual(virgoSession.session);
+    expect(
+      parseLocalCompanionState(
+        JSON.stringify({ ...virgoSession, modeId: "custom" }),
+      ),
+    ).toBeNull();
   });
 
   it("最近当前会话只保留九条有效消息并覆盖旧人格会话", () => {
