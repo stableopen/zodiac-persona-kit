@@ -2,11 +2,11 @@
 
 > **给 AI 设置一个更懂你的星座。**
 
-[![CI](https://github.com/stableye/zodiac-persona-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/stableye/zodiac-persona-kit/actions/workflows/ci.yml)
+[![CI](https://github.com/stableopen/zodiac-persona-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/stableopen/zodiac-persona-kit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-8f6cff.svg)](LICENSE)
 ![12 Personas](https://img.shields.io/badge/personas-12-ff6db2.svg)
 
-**[查看 GitHub 开源项目 →](https://github.com/stableye/zodiac-persona-kit)** · **[安装 12 套沟通 Skill →](https://github.com/stableye/zodiac-communication-skill#安装--installation)**
+**[查看 GitHub 开源项目 →](https://github.com/stableopen/zodiac-persona-kit)** · **[安装 12 套沟通 Skill →](https://github.com/stableopen/zodiac-communication-skill#安装--installation)**
 
 ![从匿名同题 A/B 到揭示差异、确认 AI 搭子的流程](docs/assets/persona-kit-flow.gif)
 
@@ -14,7 +14,7 @@
 
 AI星座搭子是一个中文 AI 沟通风格开源项目。用同一道题的两种回答，帮你选出更懂你的表达方式；确认喜欢的风格后，还可以继续聊天或邀请朋友一起选择。
 
-需要把相同协议装进 Agent？使用配套的 [zodiac-communication-skill](https://github.com/stableye/zodiac-communication-skill)。准备发布演示时，统一事实底稿、短视频脚本与各平台文案见 [Launch Kit](docs/LAUNCH_KIT.md)。
+需要把相同协议装进 Agent？使用配套的 [zodiac-communication-skill](https://github.com/stableopen/zodiac-communication-skill)。准备发布演示时，统一事实底稿、短视频脚本与各平台文案见 [Launch Kit](docs/LAUNCH_KIT.md)。
 
 当前状态：V0.3 为已确认的 AI 搭子加入“推进、安心、灵感”三种任务模式，同时保留直接聊天与 V0.1/V0.2 的既有体验路径。V0.2 的共享持久存储适配、Sites D1 schema/migration 和生产严格门禁保持不变。项目入口是 GitHub `main` 分支源码与下方本地运行方式，远程验证状态以仓库 Actions 为准。本地或自行部署在线聊天时，仍需配置兼容 OpenAI Chat Completions 的模型服务。
 
