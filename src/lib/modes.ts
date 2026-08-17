@@ -8,6 +8,7 @@ export interface TaskMode {
   icon: string;
   tagline: string;
   description: string;
+  boundaryNote?: string;
   starters: readonly [string, string, string];
 }
 
@@ -30,6 +31,7 @@ export const TASK_MODES: readonly TaskMode[] = [
     icon: "◌",
     tagline: "先稳住，再处理",
     description: "接住当下感受，分开事实与担忧，只给低负担下一步。",
+    boundaryNote: "仅用于日常情绪整理，不提供心理诊断或治疗。",
     starters: [
       "我因为___有点乱，先陪我把事实和担心分开。",
       "这件事让我很有压力，帮我找到今天能做的一小步。",
@@ -63,4 +65,12 @@ export function parseTaskModeId(value: unknown): TaskModeId | null {
 
 export function getTaskMode(id: TaskModeId): TaskMode {
   return TASK_MODES_BY_ID[id];
+}
+
+export function getChatSuggestionSurface(
+  modeId: TaskModeId | null,
+  messageCount: number,
+): "mode-starters" | "quick-prompts" | null {
+  if (modeId) return "mode-starters";
+  return messageCount <= 1 ? "quick-prompts" : null;
 }

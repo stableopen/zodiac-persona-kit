@@ -34,6 +34,7 @@ test("server-renders the finished AI星座搭子 homepage", async () => {
   );
   assert.match(html, /class="hero-title-accent"[^>]*>星座？<\/span>/);
   assert.match(html, /测测我的AI搭子/);
+  assert.match(html, /先选对味表达，再用三种模式做事/);
   assert.match(html, /同一道题，让两种AI回答给你听/);
   assert.match(html, /同一道题，两种AI/);
   assert.match(

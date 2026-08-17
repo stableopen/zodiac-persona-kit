@@ -59,6 +59,7 @@
 - 留存边界覆盖：同日不计、后续第 1/7 日、错人格、分散单次、超过 7 日、失败回复、确认竞态、缺盐/设备/KV 降级与隐私扫描。
 - 关键测试：`tests/duel.test.ts`、`tests/local-state.test.ts`、`tests/events.test.ts`、`tests/retention.test.ts`、`tests/chat-api.test.ts`、`tests/telemetry.test.ts`、`tests/rendered-html.test.mjs`。
 - 2026-08-17 V0.3 最终门禁：typecheck、Vitest 15 文件 65/65、lint、production build、SSR 4/4、`git diff --check` 全绿。浏览器验证三模式与直接聊天切换、起手式只填输入框、刷新恢复人格/模式、无模型清晰降级；390×844 无横向溢出、输入区首屏可见、模式相关触控目标 44px、console error=0。
+- 2026-08-17 产品复验 P1/P2 定向返工：`getChatSuggestionSurface` 固定合法模式优先显示起手式，因此已有多条本地消息也不隐藏；无模式时保留原 `messageCount <= 1` 快捷问题规则。2 条真实本地消息的浏览器路径已验证回首页选新模式后 3 个起手式可见、点击只填框且可编辑，历史不清除；安心边界与 Hero 两阶段文案亦已可见，console error=0。回归接缝为 `tests/modes.test.ts` 和 `tests/rendered-html.test.mjs`。
 
 ## 已知限制
 

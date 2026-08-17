@@ -36,6 +36,7 @@ import {
 } from "@/src/lib/local-state";
 import {
   TASK_MODES,
+  getChatSuggestionSurface,
   getTaskMode,
   type TaskModeId,
 } from "@/src/lib/modes";
@@ -356,6 +357,10 @@ export function ZodiacApp({
     ? getPersona(localState.confirmedPersonaId)
     : undefined;
   const activeMode = activeModeId ? getTaskMode(activeModeId) : null;
+  const chatSuggestionSurface = getChatSuggestionSurface(
+    activeModeId,
+    chatMessages.length,
+  );
 
   const goHome = () => {
     setView("home");
@@ -1019,8 +1024,7 @@ export function ZodiacApp({
               )}
               <div ref={chatEndRef} />
             </div>
-            {chatMessages.length <= 1 && (
-              activeMode ? (
+            {chatSuggestionSurface === "mode-starters" && activeMode && (
                 <div className="mode-empty-state">
                   <div>
                     <strong>{activeMode.name}模式 · {activeMode.tagline}</strong>
@@ -1034,14 +1038,19 @@ export function ZodiacApp({
                     ))}
                   </div>
                   <small>点一下只会填入输入框，你可以改好再发送。</small>
+                  {activeMode.boundaryNote && (
+                    <small className="mode-boundary-note">
+                      {activeMode.boundaryNote}
+                    </small>
+                  )}
                 </div>
-              ) : (
+            )}
+            {chatSuggestionSurface === "quick-prompts" && (
                 <div className="quick-prompts">
                   {QUICK_PROMPTS.map((prompt) => (
                     <button key={prompt} onClick={() => void sendChat(prompt)}>{prompt}</button>
                   ))}
                 </div>
-              )
             )}
             {chatError && (
               <div className="chat-error" role="alert">
@@ -1164,7 +1173,7 @@ export function ZodiacApp({
       )}
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow"><span>V0.3</span> 同一人格，三种任务模式</p>
+          <p className="eyebrow"><span>V0.3</span> 先选对味表达，再用三种模式做事</p>
           <h1>
             <span className="hero-title-line">你的AI，</span>
             <span className="hero-title-line">

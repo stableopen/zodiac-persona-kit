@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   TASK_MODES,
+  getChatSuggestionSurface,
   parseTaskModeId,
 } from "../src/lib/modes";
 import { resolveTaskMode } from "../src/server/mode-instruction";
@@ -22,5 +23,20 @@ describe("V0.3任务模式", () => {
     expect(resolveTaskMode(undefined)).toBeNull();
     expect(resolveTaskMode("ideas")?.instruction).toContain("3个");
     expect(resolveTaskMode("custom")).toBeNull();
+  });
+
+  it("恢复多条旧会话后选择模式仍展示三个起手式", () => {
+    expect(getChatSuggestionSurface("action", 7)).toBe("mode-starters");
+    expect(getChatSuggestionSurface("calm", 7)).toBe("mode-starters");
+    expect(getChatSuggestionSurface("ideas", 7)).toBe("mode-starters");
+    expect(getChatSuggestionSurface(null, 7)).toBeNull();
+    expect(getChatSuggestionSurface(null, 1)).toBe("quick-prompts");
+  });
+
+  it("安心模式公开日常整理且非诊断治疗的使用边界", () => {
+    const calmMode = TASK_MODES.find((mode) => mode.id === "calm");
+    expect(calmMode?.boundaryNote).toBe(
+      "仅用于日常情绪整理，不提供心理诊断或治疗。",
+    );
   });
 });
